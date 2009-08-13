@@ -71,6 +71,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;USE_MMX;USE_SS2"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -228,6 +229,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -386,6 +388,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -740,134 +743,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
-				RelativePath="..\..\pixman\combine.h.inc"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.h"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.h"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.h"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.h"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="ReleaseWdkCrt|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.h"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="ReleaseWdkCrt|x64"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.h"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\pixman\combine.inc"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.c"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.c"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.c"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.c"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="ReleaseWdkCrt|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.c"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="ReleaseWdkCrt|x64"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-						Description="Generating pixman-combineXX.c"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
-						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\config.h.in"
 				>
 			</File>
@@ -878,6 +753,134 @@
 			<File
 				RelativePath="..\..\pixman-1.pc.in"
 				>
+			</File>
+			<File
+				RelativePath="..\..\pixman\pixman-combine.c.template"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.c"
+						CommandLine="perl $(InputDir)\make-combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl $(InputDir)\make-combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.c"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.c"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.c"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseWdkCrt|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.c"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseWdkCrt|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.c"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\pixman\pixman-combine.h.template"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.h"
+						CommandLine="perl ..\..\pixman\make-combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\make-combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.h"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.h"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.h"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseWdkCrt|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.h"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseWdkCrt|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+						Description="Generating pixman-combineXX.h"
+						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
+						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\..\pixman\pixman-version.h.in"
