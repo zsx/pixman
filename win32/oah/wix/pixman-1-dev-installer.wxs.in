@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" UpgradeCode="{09E12C15-4D82-43a7-9D89-DB4D6B0A5CA1}" Version="@VERSION@.0" Language="1033" Name="Pixman" Manufacturer="Free Software">
+		<Package InstallerVersion="300" Compressed="yes" InstallScope="perMachine"
+				Description="Provides low-level pixel manipulation features such as image compositing and trapezoid rasterization."
+				Manufacturer="Free Software" />
+		<Media Id="1" Cabinet="pixman_dev_installer.cab" EmbedCab="yes" />
+
+		<Property Id="OAH_BUILD_PRODUCT_DIR">
+			<RegistrySearch Id="OAHBuildProductDir"
+							Root="HKLM" Key="SOFTWARE\OAH Build" Name="ProductDir"
+							Type="raw" />
+		</Property>
+
+		<Property Id="FOSS_PRODUCT_DIR">
+			<RegistrySearch Id="FOSSProductDir"
+							Root="HKLM" Key="SOFTWARE\Free Software" Name="ProductDir"
+							Type="raw" />
+		</Property>
+
+		<Condition Message="OAH Build was not found. You need to install OAH Build before installing [ProductName].">
+			<![CDATA[Installed OR OAH_BUILD_PRODUCT_DIR]]>
+		</Condition>
+
+		<Condition Message="OAH Build was found, but where to install FOSS components is unknown. You need to reinstall OAH Build before installing [ProductName].">
+			<![CDATA[Installed OR FOSS_PRODUCT_DIR]]>
+		</Condition>
+
+		<!-- Directory structure -->
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="FOSS_PRODUCT_DIR">
+				<Merge Id='PixmanDev' Language='1033' SourceFile='Win32\pixman-1-dev.msm' DiskId='1' />
+
+				<Directory Id="ModuleRedist" Name="redist">
+					<Component Id="PixmanDevRedist" Guid="{BB89E145-36B8-457c-8995-509B474D2F8C}">
+						<File Id="pixman_1_dev.msm" Source="Win32\pixman-1-dev.msm" />
+					</Component>
+				</Directory>
+			</Directory>
+		</Directory>
+
+		<Feature Id="PixmanDev" Title="Pixman .h, .lib, .pc and redist files" Level="1">
+			<MergeRef Id='PixmanDev' />
+			<ComponentRef Id="PixmanDevRedist" />
+		</Feature>
+	</Product>
+</Wix>

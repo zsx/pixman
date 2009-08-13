@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Module Id="pixmandev" Version="@VERSION@.0" Language="1033">
+		<Package Id="{20AB1894-47A4-40d0-ADFD-2A8677CB7DFA}"
+				Description="Development package without source code, but includes: headers, import libraries, binaries and pkg-config files"
+				Manufacturer="Free Software Community" InstallerVersion="300" />
+
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="MODULE_DIR" Name=".">
+				<Directory Id="ModuleInclude" Name="include">
+					<Directory Id="PixmanRoot" Name="pixman-1">
+						<Component Id="includes" Guid="{219C3EC9-F149-4c11-8266-F880473DAB82}">
+							%(include/pixman-1_files)s
+						</Component>
+					</Directory>
+				</Directory>
+
+				<Directory Id="ModuleLib" Name="lib">
+					<Component Id="libs" Guid="{C734DDF8-BE37-48a8-B7F4-9D00EC9D4BF0}">
+						%(lib_files)s
+					</Component>
+
+					<Directory Id="LibPkgConfig" Name="pkgconfig">
+						<Component Id="pcs" Guid="{8C43F716-9D2C-43f5-963E-A1F2941FE524}">
+							%(pc_files)s
+						</Component>
+					</Directory>
+				</Directory>
+			</Directory>
+		</Directory>
+	</Module>
+</Wix>
