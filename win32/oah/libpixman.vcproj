@@ -783,7 +783,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating pixman-combineXX.c"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
+						CommandLine="perl &quot;$(InputDir)\make-combine.pl&quot; 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl &quot;$(InputDir)\make-combine.pl&quot; 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
 					/>
 				</FileConfiguration>
@@ -803,7 +803,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating pixman-combineXX.c"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
+						CommandLine="perl &quot;$(InputDir)\make-combine.pl&quot; 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.c&quot;&#x0D;&#x0A;perl &quot;$(InputDir)\make-combine.pl&quot; 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.c&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\pixman-combine32.c;$(IntDir)\pixman-combine64.c"
 					/>
 				</FileConfiguration>
@@ -847,7 +847,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating pixman-combineXX.h"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
+						CommandLine="perl &quot;..\..\pixman\make-combine.pl&quot; 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl &quot;..\..\pixman\make-combine.pl&quot; 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
 					/>
 				</FileConfiguration>
@@ -867,7 +867,7 @@
 					<Tool
 						Name="VCCustomBuildTool"
 						Description="Generating pixman-combineXX.h"
-						CommandLine="perl ..\..\pixman\combine.pl 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl ..\..\pixman\combine.pl 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
+						CommandLine="perl &quot;..\..\pixman\make-combine.pl&quot; 8 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine32.h&quot;&#x0D;&#x0A;perl &quot;..\..\pixman\make-combine.pl&quot; 16 &lt; &quot;$(InputPath)&quot; &gt; &quot;$(IntDir)\pixman-combine64.h&quot;&#x0D;&#x0A;"
 						Outputs="$(IntDir)\pixman-combine32.h;$(IntDir)\pixman-combine64.h"
 					/>
 				</FileConfiguration>
