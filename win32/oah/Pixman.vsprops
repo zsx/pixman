@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioPropertySheet
+	ProjectType="Visual C++"
+	Version="8.00"
+	Name="Pixman"
+	InheritedPropertySheets="$(OAH_INSTALLED_PATH)\vsprops\oah-PC.vsprops"
+	>
+	<Tool
+		Name="VCCLCompilerTool"
+		AdditionalIncludeDirectories="$(IntDir);..\..\pixman"
+		PreprocessorDefinitions="HAVE_CONFIG_H;PIXMAN_DISABLE_DEPRECATED"
+	/>
+	<UserMacro
+		Name="PixmanMajorVersion"
+		Value="0"
+	/>
+	<UserMacro
+		Name="PixmanMinorVersion"
+		Value="13"
+	/>
+	<UserMacro
+		Name="PixmanMicroVersion"
+		Value="2"
+	/>
+	<UserMacro
+		Name="PixmanApiVersion"
+		Value="1"
+	/>
+	<UserMacro
+		Name="PixmanVersion"
+		Value="$(PixmanMajorVersion).$(PixmanMinorVersion).$(PixmanMicroVersion)"
+	/>
+	<UserMacro
+		Name="OahTargetVersion"
+		Value="-$(PixmanApiVersion)"
+	/>
+</VisualStudioPropertySheet>
