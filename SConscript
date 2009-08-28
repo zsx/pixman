@@ -22,7 +22,7 @@ env['DOT_IN_SUBS'] = {'@PACKAGE_VERSION@': PIXMAN_VERSION_STRING,
 env.DotIn('pixman-1.pc', 'pixman-1.pc.in')
 env.DotIn('config.h', 'win32/config.h.in')
 
-env.Append(CPPFLAGS='-DHAVE_CONFIG_H')
+env.Append(CPPDEFINES='HAVE_CONFIG_H')
 env.Append(CPPPATH=['..', '.'])
 
 ip = env.Install(prefix + '/lib/pkgconfig', 'pixman-1.pc')
