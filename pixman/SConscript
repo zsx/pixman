@@ -1,26 +1,80 @@
-# vim: set ft=python
+# vim: ft=python
 
-Import('env prefix')
+Import('env_pixman prefix')
 
-env['PDB']='pixman.pdb'
+test_mmx = '''
+#if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
+error "Need GCC >= 3.4 for MMX intrinsics"
+#endif
+#include <mmintrin.h>
+int main () {
+    __m64 v = _mm_cvtsi32_si64 (1);
+    return _mm_cvtsi64_si32 (v);
+}
+'''
+def CheckMMX(context):
+    context.Message('Checking for MMX... ')
+    result = context.TryLink(test_mmx, '.c')
+    context.Result(result)
+    return result
 
+conf = Configure(env_pixman, custom_tests = {'CheckMMX' : CheckMMX})
+if conf.CheckMMX():
+    env_pixman['USE_MMX'] = 1
+    env_pixman.Append(CPPDEFINES=['USE_MMX'])
+env_pixman = conf.Finish()
+
+test_sse2 = '''
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 2))
+#   if !defined(__amd64__) && !defined(__x86_64__)
+#      error "Need GCC >= 4.2 for SSE2 intrinsics on x86"
+#   endif
+#endif
+#include <mmintrin.h>
+#include <xmmintrin.h>
+#include <emmintrin.h>
+int main () {
+    __m128i a, b, c;
+	c = _mm_xor_si128 (a, b);
+    return 0;
+}
+'''
+
+def CheckSSE2(context):
+    context.Message('Checking for SSE2... ')
+    result = context.TryLink(test_sse2, '.c')
+    context.Result(result)
+    return result
+
+conf = Configure(env_pixman, custom_tests = {'CheckSSE2' : CheckSSE2})
+if conf.CheckSSE2():
+    env_pixman['USE_SSE2'] = 1
+    env_pixman.Append(CPPDEFINES=['USE_SS2'])
+env_pixman = conf.Finish()
+
+env_pixman['PDB']='pixman.pdb'
 pixman_SOURCES = Split("pixman-access.c	pixman-access-accessors.c pixman-cpu.c pixman-gradient-walker.c pixman-region16.c pixman-region32.c pixman-image.c pixman-implementation.c pixman-combine32.c pixman-combine64.c pixman-general.c pixman.c pixman-fast-path.c pixman-solid-fill.c pixman-conical-gradient.c pixman-linear-gradient.c pixman-radial-gradient.c pixman-bits-image.c	pixman-utils.c pixman-edge.c pixman-edge-accessors.c pixman-trap.c pixman-timer.c pixman-matrix.c")
 
-env.Command('pixman-combine32.c', 'pixman-combine.c.template', 'pixman\pixman\make-combine.pl 8 < $SOURCE > $TARGET')
-env.Command('pixman-combine32.h', 'pixman-combine.h.template', 'pixman\pixman\make-combine.pl 8 < $SOURCE > $TARGET')
-env.Command('pixman-combine64.c', 'pixman-combine.c.template', 'pixman\pixman\make-combine.pl 16 < $SOURCE > $TARGET')
-env.Command('pixman-combine64.h', 'pixman-combine.h.template', 'pixman\pixman\make-combine.pl 16 < $SOURCE > $TARGET')
+if env_pixman.has_key('USE_MMX') and env_pixman['USE_MMX']:
+    pixman_SOURCES += ['pixman-mmx.c']
+if env_pixman.has_key('USE_SSE2') and env_pixman['USE_SSE2']:
+    pixman_SOURCES += ['pixman-sse2.c']
 
-env.DotIn('pixman-version.h', 'pixman-version.h.in')
-lib = env.StaticLibrary('pixman', pixman_SOURCES)
-env.Depends(lib, 'pixman-version.h')
-ilib = env.Install(prefix + '/lib', lib)
-iheader = env.Install(prefix + '/include/pixman-1', ['pixman.h', 'pixman-version.h'])
+env_pixman.Command('pixman-combine32.c', 'pixman-combine.c.template', env_pixman['PERL'] + ' pixman\pixman\make-combine.pl 8 < $SOURCE > $TARGET')
+env_pixman.Command('pixman-combine32.h', 'pixman-combine.h.template', env_pixman['PERL'] + ' pixman\pixman\make-combine.pl 8 < $SOURCE > $TARGET')
+env_pixman.Command('pixman-combine64.c', 'pixman-combine.c.template', env_pixman['PERL'] + ' pixman\pixman\make-combine.pl 16 < $SOURCE > $TARGET')
+env_pixman.Command('pixman-combine64.h', 'pixman-combine.h.template', env_pixman['PERL'] + ' pixman\pixman\make-combine.pl 16 < $SOURCE > $TARGET')
+
+env_pixman.DotIn('pixman-version.h', 'pixman-version.h.in')
+lib = env_pixman.StaticLibrary('pixman', pixman_SOURCES)
+env_pixman.Depends(lib, 'pixman-version.h')
+ilib = env_pixman.Install(prefix + '/lib', lib)
+iheader = env_pixman.Install(prefix + '/include/pixman-1', ['pixman.h', 'pixman-version.h'])
 
 ilist = [ilib, iheader]
 
 if ARGUMENTS.get('debug', 0):
-	ipdb = env.Install(prefix + '/pdb', env['PDB'])
+	ipdb = env_pixman.Install(prefix + '/pdb', env_pixman['PDB'])
 	ilist += ipdb
 
 Alias('install', ilist)
