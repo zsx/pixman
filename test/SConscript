@@ -1,0 +1,19 @@
+# vim: ft=python
+
+Import("env_pixman prefix")
+
+libs='pixman.lib'
+libpath=prefix+"/lib"
+
+env_pixman_test = env_pixman.Clone()
+
+if env_pixman_test.has_key('PDB'):
+    del env_pixman_test['PDB']
+    env_pixman_test['CCPDBFLAGS'] = '/Zi /Fd${TARGET}.pdb'
+
+env_pixman_test.Program('region-test.c', LIBS=libs, LIBPATH=libpath)
+env_pixman_test.Program('scaling-test.c', LIBS=libs, LIBPATH=libpath)
+#env_pixman_test.Program('fetch-test.c', LIBS=libs, LIBPATH=libpath) #C99 sytax
+env_pixman_test.Program('oob-test.c', LIBS=libs, LIBPATH=libpath)
+env_pixman_test.Program('window-test.c', LIBS=libs, LIBPATH=libpath)
+#env_pixman_test.Program('trap-test.c', LIBS=libs, LIBPATH=libpath) #glib.h
