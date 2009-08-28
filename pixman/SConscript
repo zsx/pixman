@@ -2,6 +2,8 @@
 
 Import('env prefix')
 
+env['PDB']='pixman.pdb'
+
 pixman_SOURCES = Split("pixman-access.c	pixman-access-accessors.c pixman-cpu.c pixman-gradient-walker.c pixman-region16.c pixman-region32.c pixman-image.c pixman-implementation.c pixman-combine32.c pixman-combine64.c pixman-general.c pixman.c pixman-fast-path.c pixman-solid-fill.c pixman-conical-gradient.c pixman-linear-gradient.c pixman-radial-gradient.c pixman-bits-image.c	pixman-utils.c pixman-edge.c pixman-edge-accessors.c pixman-trap.c pixman-timer.c pixman-matrix.c")
 
 env.Command('pixman-combine32.c', 'pixman-combine.c.template', 'pixman\pixman\make-combine.pl 8 < $SOURCE > $TARGET')
@@ -15,4 +17,10 @@ env.Depends(lib, 'pixman-version.h')
 ilib = env.Install(prefix + '/lib', lib)
 iheader = env.Install(prefix + '/include/pixman-1', ['pixman.h', 'pixman-version.h'])
 
-Alias('install', [ilib, iheader])
+ilist = [ilib, iheader]
+
+if ARGUMENTS.get('debug', 0):
+	ipdb = env.Install(prefix + '/pdb', env['PDB'])
+	ilist += ipdb
+
+Alias('install', ilist)
