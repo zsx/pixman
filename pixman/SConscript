@@ -66,10 +66,10 @@ env.Command('pixman-combine64.c', 'pixman-combine.c.template', env['PERL'] + ' p
 env.Command('pixman-combine64.h', 'pixman-combine.h.template', env['PERL'] + ' pixman\make-combine.pl 16 < $SOURCE > $TARGET')
 
 env.DotIn('pixman-version.h', 'pixman-version.h.in')
-lib = env.StaticLibrary('pixman', pixman_SOURCES)
+lib = env.StaticLibrary('pixman-1', pixman_SOURCES)
 env.Depends(lib, 'pixman-version.h')
 env.Alias('install', env.Install('$PREFIX/lib', lib))
 env.Alias('install', env.Install('$PREFIX/include/pixman-1', ['pixman.h', 'pixman-version.h']))
 
-if ARGUMENTS.get('debug', 0):
+if env['DEBUG'] == 1:
 	env.Alias('install', env.Install('$PREFIX/pdb', env['PDB']))
