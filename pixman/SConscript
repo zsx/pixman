@@ -1,6 +1,6 @@
 # vim: ft=python
 
-Import('env_pixman prefix')
+Import('env')
 
 test_mmx = '''
 #if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
@@ -18,11 +18,11 @@ def CheckMMX(context):
     context.Result(result)
     return result
 
-conf = Configure(env_pixman, custom_tests = {'CheckMMX' : CheckMMX})
+conf = Configure(env, custom_tests = {'CheckMMX' : CheckMMX})
 if conf.CheckMMX():
-    env_pixman['USE_MMX'] = 1
-    env_pixman.Append(CPPDEFINES=['USE_MMX'])
-env_pixman = conf.Finish()
+    env['USE_MMX'] = 1
+    env.Append(CPPDEFINES=['USE_MMX'])
+env = conf.Finish()
 
 test_sse2 = '''
 #if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 2))
@@ -46,35 +46,30 @@ def CheckSSE2(context):
     context.Result(result)
     return result
 
-conf = Configure(env_pixman, custom_tests = {'CheckSSE2' : CheckSSE2})
+conf = Configure(env, custom_tests = {'CheckSSE2' : CheckSSE2})
 if conf.CheckSSE2():
-    env_pixman['USE_SSE2'] = 1
-    env_pixman.Append(CPPDEFINES=['USE_SS2'])
-env_pixman = conf.Finish()
+    env['USE_SSE2'] = 1
+    env.Append(CPPDEFINES=['USE_SS2'])
+env = conf.Finish()
 
-env_pixman['PDB']='pixman.pdb'
+env['PDB']='pixman.pdb'
 pixman_SOURCES = Split("pixman-access.c	pixman-access-accessors.c pixman-cpu.c pixman-gradient-walker.c pixman-region16.c pixman-region32.c pixman-image.c pixman-implementation.c pixman-combine32.c pixman-combine64.c pixman-general.c pixman.c pixman-fast-path.c pixman-solid-fill.c pixman-conical-gradient.c pixman-linear-gradient.c pixman-radial-gradient.c pixman-bits-image.c	pixman-utils.c pixman-edge.c pixman-edge-accessors.c pixman-trap.c pixman-timer.c pixman-matrix.c")
 
-if env_pixman.has_key('USE_MMX') and env_pixman['USE_MMX']:
+if env.has_key('USE_MMX') and env['USE_MMX']:
     pixman_SOURCES += ['pixman-mmx.c']
-if env_pixman.has_key('USE_SSE2') and env_pixman['USE_SSE2']:
+if env.has_key('USE_SSE2') and env['USE_SSE2']:
     pixman_SOURCES += ['pixman-sse2.c']
 
-env_pixman.Command('pixman-combine32.c', 'pixman-combine.c.template', env_pixman['PERL'] + ' pixman\pixman\make-combine.pl 8 < $SOURCE > $TARGET')
-env_pixman.Command('pixman-combine32.h', 'pixman-combine.h.template', env_pixman['PERL'] + ' pixman\pixman\make-combine.pl 8 < $SOURCE > $TARGET')
-env_pixman.Command('pixman-combine64.c', 'pixman-combine.c.template', env_pixman['PERL'] + ' pixman\pixman\make-combine.pl 16 < $SOURCE > $TARGET')
-env_pixman.Command('pixman-combine64.h', 'pixman-combine.h.template', env_pixman['PERL'] + ' pixman\pixman\make-combine.pl 16 < $SOURCE > $TARGET')
+env.Command('pixman-combine32.c', 'pixman-combine.c.template', env['PERL'] + ' pixman\make-combine.pl 8 < $SOURCE > $TARGET')
+env.Command('pixman-combine32.h', 'pixman-combine.h.template', env['PERL'] + ' pixman\make-combine.pl 8 < $SOURCE > $TARGET')
+env.Command('pixman-combine64.c', 'pixman-combine.c.template', env['PERL'] + ' pixman\make-combine.pl 16 < $SOURCE > $TARGET')
+env.Command('pixman-combine64.h', 'pixman-combine.h.template', env['PERL'] + ' pixman\make-combine.pl 16 < $SOURCE > $TARGET')
 
-env_pixman.DotIn('pixman-version.h', 'pixman-version.h.in')
-lib = env_pixman.StaticLibrary('pixman', pixman_SOURCES)
-env_pixman.Depends(lib, 'pixman-version.h')
-ilib = env_pixman.Install(prefix + '/lib', lib)
-iheader = env_pixman.Install(prefix + '/include/pixman-1', ['pixman.h', 'pixman-version.h'])
-
-ilist = [ilib, iheader]
+env.DotIn('pixman-version.h', 'pixman-version.h.in')
+lib = env.StaticLibrary('pixman', pixman_SOURCES)
+env.Depends(lib, 'pixman-version.h')
+env.Alias('install', env.Install('$PREFIX/lib', lib))
+env.Alias('install', env.Install('$PREFIX/include/pixman-1', ['pixman.h', 'pixman-version.h']))
 
 if ARGUMENTS.get('debug', 0):
-	ipdb = env_pixman.Install(prefix + '/pdb', env_pixman['PDB'])
-	ilist += ipdb
-
-Alias('install', ilist)
+	env.Alias('install', env.Install('$PREFIX/pdb', env['PDB']))
