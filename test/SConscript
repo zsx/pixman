@@ -12,4 +12,4 @@ tests = ['region-test',
 
 for t in tests:
     e = env.Clone(PDB = t + '.pdb')
-    e.Program(t, t + '.c', LIBS = 'pixman.lib', LIBPATH='#pixman')
+    e.Program(t, t + '.c', LIBS = 'pixman-1.lib', LIBPATH='#pixman')
