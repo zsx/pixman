@@ -34,7 +34,7 @@ test_sse2 = '''
 #include <xmmintrin.h>
 #include <emmintrin.h>
 int main () {
-    __m128i a, b, c;
+    __m128i a = _mm_set1_epi32 (0), b = _mm_set1_epi32 (0), c;
 	c = _mm_xor_si128 (a, b);
     return 0;
 }
@@ -49,16 +49,67 @@ def CheckSSE2(context):
 conf = Configure(env, custom_tests = {'CheckSSE2' : CheckSSE2})
 if conf.CheckSSE2():
     env['USE_SSE2'] = 1
-    env.Append(CPPDEFINES=['USE_SS2'])
+    env.Append(CPPDEFINES=['USE_SSE2'])
+env = conf.Finish()
+
+test_vmx = '''
+#if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
+error "Need GCC >= 3.4 for sane altivec support"
+#endif
+#include <altivec.h>
+int main () {
+    vector unsigned int v = vec_splat_u32 (1);
+    v = vec_sub (v, v);
+    return 0;
+}
+'''
+
+def CheckVMX(context):
+    context.Message('Checking for VMX... ')
+    result = context.TryLink(test_vmx, '.c')
+    context.Result(result)
+    return result
+
+conf = Configure(env, custom_tests = {'CheckVMX' : CheckVMX})
+if conf.CheckVMX():
+    env['USE_VMX'] = 1
+    env.Append(CPPDEFINES=['USE_VMX'])
 env = conf.Finish()
 
 env['PDB']='pixman.pdb'
-pixman_SOURCES = Split("pixman-access.c	pixman-access-accessors.c pixman-cpu.c pixman-gradient-walker.c pixman-region16.c pixman-region32.c pixman-image.c pixman-implementation.c pixman-combine32.c pixman-combine64.c pixman-general.c pixman.c pixman-fast-path.c pixman-solid-fill.c pixman-conical-gradient.c pixman-linear-gradient.c pixman-radial-gradient.c pixman-bits-image.c	pixman-utils.c pixman-edge.c pixman-edge-accessors.c pixman-trap.c pixman-timer.c pixman-matrix.c")
+pixman_SOURCES = Split("\
+	pixman-access.c				\
+	pixman-access-accessors.c		\
+	pixman-cpu.c				\
+	pixman-gradient-walker.c		\
+	pixman-region16.c			\
+	pixman-region32.c			\
+	pixman-image.c				\
+	pixman-implementation.c			\
+	pixman-combine32.c			\
+	pixman-combine64.c			\
+	pixman-general.c			\
+	pixman.c				\
+	pixman-fast-path.c			\
+	pixman-solid-fill.c			\
+	pixman-conical-gradient.c		\
+	pixman-linear-gradient.c		\
+	pixman-radial-gradient.c		\
+	pixman-bits-image.c			\
+	pixman-utils.c				\
+	pixman-edge.c				\
+	pixman-edge-accessors.c			\
+	pixman-trap.c				\
+	pixman-timer.c				\
+	pixman-matrix.c")
+        
 
 if env.has_key('USE_MMX') and env['USE_MMX']:
     pixman_SOURCES += ['pixman-mmx.c']
 if env.has_key('USE_SSE2') and env['USE_SSE2']:
     pixman_SOURCES += ['pixman-sse2.c']
+if env.has_key('USE_VMX') and env['USE_VMX']:
+    pixman_SOURCES += ['pixman-vmx.c']
 
 env.Command('pixman-combine32.c', 'pixman-combine.c.template', env['PERL'] + ' pixman\make-combine.pl 8 < $SOURCE > $TARGET')
 env.Command('pixman-combine32.h', 'pixman-combine.h.template', env['PERL'] + ' pixman\make-combine.pl 8 < $SOURCE > $TARGET')

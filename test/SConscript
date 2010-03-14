@@ -2,15 +2,40 @@
 
 Import("env")
 
-tests = ['region-test',
-         'scaling-test',
+tests = ['a1-trap-test',
+         'region-test',
          #C99 'fetch-test',
          'oob-test',
          'window-test',
-         #glib.h 'trap-test'
+         #glib.h 'trap-test',
+         'alphamap',
+         'blitters-test',
+         'scaling-test',
+         'composite'
          ]
-
+utils_obj = env.StaticObject('utils.c')
 for t in tests:
     e = env.Clone(PDB = t + '.pdb')
     e.Append(LIBS = 'pixman-1.lib', LIBPATH='#pixman')
-    e.Program(t, t + '.c')
+    if t == 'composite':
+        e.Append(CPPDEFINES=('snprintf', '_snprintf'))
+    e.Program(t, [t + '.c', utils_obj])
+
+if env['HAVE_GTK']:
+    gtk_tests = Split("\
+	clip-test		\
+	clip-in			\
+	composite-test		\
+	gradient-test		\
+	alpha-test		\
+	screen-test		\
+	convolution-test	\
+	trap-test")
+    env_gtk = env.Clone()
+    env_gtk.ParseConfig('pkg-config gtk+-2.0 --cflags --libs')
+    gtk_utils_obj = env_gtk.StaticObject('gtk-utils.c')
+
+    for t in gtk_tests:
+        e = env_gtk.Clone(PDB = t + '.pdb')
+        e.Append(LIBS = 'pixman-1.lib', LIBPATH='#pixman')
+        e.Program(t, [t + '.c', gtk_utils_obj])
