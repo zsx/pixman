@@ -31,7 +31,7 @@ AC_PREREQ([2.57])
 #
 #   - Released development versions have an odd MINOR number
 #
-#   - Released stable versions have an event MINOR number
+#   - Released stable versions have an even MINOR number
 #
 #   - Versions that break ABI must have a new MAJOR number
 #
@@ -53,27 +53,45 @@ AC_PREREQ([2.57])
 #
 
 m4_define([pixman_major], 0)
-m4_define([pixman_minor], 15)
-m4_define([pixman_micro], 21)
+m4_define([pixman_minor], 17)
+m4_define([pixman_micro], 11)
 
 m4_define([pixman_version],[pixman_major.pixman_minor.pixman_micro])
 
 AC_INIT(pixman, pixman_version, "sandmann@daimi.au.dk", pixman)
-AM_INIT_AUTOMAKE([dist-bzip2])
+AM_INIT_AUTOMAKE([foreign dist-bzip2])
+
+# Suppress verbose compile lines
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AM_CONFIG_HEADER(config.h)
 
 AC_CANONICAL_HOST
 
+test_CFLAGS=${CFLAGS+set} # We may override autoconf default CFLAGS.
+
 AC_PROG_CC
+AM_PROG_AS
 AC_PROG_LIBTOOL
 AC_CHECK_FUNCS([getisax])
 AC_C_BIGENDIAN
 AC_C_INLINE
 
+AC_CHECK_SIZEOF(long)
+
 # Checks for Sun Studio compilers
 AC_CHECK_DECL([__SUNPRO_C], [SUNCC="yes"], [SUNCC="no"])
 AC_CHECK_DECL([__amd64], [AMD64_ABI="yes"], [AMD64_ABI="no"])
+
+# Default CFLAGS to -O -g rather than just the -g from AC_PROG_CC
+# if we're using Sun Studio and neither the user nor a config.site
+# has set CFLAGS.
+if test $SUNCC = yes &&			\
+   test "$test_CFLAGS" == "" &&		\
+   test "$CFLAGS" = "-g"
+then
+  CFLAGS="-O -g"
+fi
 
 # 
 # We ignore pixman_major in the version here because the major version should
@@ -235,7 +253,7 @@ AC_COMPILE_IFELSE([
 #include <xmmintrin.h>
 #include <emmintrin.h>
 int main () {
-    __m128i a, b, c;
+    __m128i a = _mm_set1_epi32 (0), b = _mm_set1_epi32 (0), c;
 	c = _mm_xor_si128 (a, b);
     return 0;
 }], have_sse2_intrinsics=yes)
@@ -306,7 +324,7 @@ fi
 have_vmx_intrinsics=no
 AC_MSG_CHECKING(whether to use VMX/Altivec intrinsics)
 xserver_save_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS $VMX_CFLAGS"
+CFLAGS="$VMX_CFLAGS $CFLAGS"
 AC_COMPILE_IFELSE([
 #if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
 error "Need GCC >= 3.4 for sane altivec support"
@@ -345,18 +363,28 @@ AM_CONDITIONAL(USE_VMX, test $have_vmx_intrinsics = yes)
 
 dnl ===========================================================================
 dnl Check for ARM SIMD instructions
-ARM_SIMD_CFLAGS="-mcpu=arm1136j-s"
+ARM_SIMD_CFLAGS=""
 
 have_arm_simd=no
 AC_MSG_CHECKING(whether to use ARM SIMD assembler)
-xserver_save_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS $ARM_SIMD_CFLAGS"
+# check with default CFLAGS in case the toolchain turns on a sufficiently recent -mcpu=
 AC_COMPILE_IFELSE([
 int main () {
     asm("uqadd8 r1, r1, r2");
     return 0;
-}], have_arm_simd=yes)
-CFLAGS=$xserver_save_CFLAGS
+}], have_arm_simd=yes,
+    # check again with an explicit -mcpu= in case the toolchain defaults to an
+    # older one; note that uqadd8 isn't available in Thumb mode on arm1136j-s
+    # so we force ARM mode
+    ARM_SIMD_CFLAGS="-mcpu=arm1136j-s -marm"
+    xserver_save_CFLAGS=$CFLAGS
+    CFLAGS="$ARM_SIMD_CFLAGS $CFLAGS"
+    AC_COMPILE_IFELSE([
+    int main () {
+        asm("uqadd8 r1, r1, r2");
+        return 0;
+    }], have_arm_simd=yes)
+    CFLAGS=$xserver_save_CFLAGS)
 
 AC_ARG_ENABLE(arm-simd,
    [AC_HELP_STRING([--disable-arm-simd],
@@ -383,19 +411,20 @@ AC_SUBST(ARM_SIMD_CFLAGS)
 AM_CONDITIONAL(USE_ARM_SIMD, test $have_arm_simd = yes)
 
 dnl ==========================================================================
-dnl Check for ARM NEON instructions
-ARM_NEON_CFLAGS="-mfpu=neon -mcpu=cortex-a8"
-
+dnl Check if assembler is gas compatible and supports NEON instructions
 have_arm_neon=no
-AC_MSG_CHECKING(whether to use ARM NEON)
+AC_MSG_CHECKING(whether to use ARM NEON assembler)
 xserver_save_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS $ARM_NEON_CFLAGS"
-AC_COMPILE_IFELSE([
-#include <arm_neon.h>
-int main () {
-    uint8x8_t neon_test=vmov_n_u8(0);
-    return 0;
-}], have_arm_neon=yes)
+CFLAGS="-x assembler-with-cpp"
+AC_COMPILE_IFELSE([[
+.text
+.fpu neon
+.altmacro
+#ifndef __ARM_EABI__
+#error EABI is required (to be sure that calling conventions are compatible)
+#endif
+pld [r0]
+vmovn.u16 d0, q0]], have_arm_neon=yes)
 CFLAGS=$xserver_save_CFLAGS
 
 AC_ARG_ENABLE(arm-neon,
@@ -408,12 +437,8 @@ if test $enable_arm_neon = no ; then
 fi
 
 if test $have_arm_neon = yes ; then
-   AC_DEFINE(USE_ARM_NEON, 1, [use ARM NEON compiler intrinsics])
-else
-   ARM_NEON_CFLAGS=
+   AC_DEFINE(USE_ARM_NEON, 1, [use ARM NEON assembly optimizations])
 fi
-
-AC_SUBST(ARM_NEON_CFLAGS)
 
 AM_CONDITIONAL(USE_ARM_NEON, test $have_arm_neon = yes)
 
@@ -489,6 +514,14 @@ AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
 AC_SUBST(DEP_CFLAGS)
 AC_SUBST(DEP_LIBS)
+
+dnl =====================================
+dnl posix_memalign 
+
+AC_CHECK_FUNC(posix_memalign, have_posix_memalign=yes, have_posix_memalign=no)
+if test x$have_posix_memalign = xyes; then
+   AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [Whether we have posix_memalign()])
+fi
 
 AC_OUTPUT([pixman-1.pc
            pixman-1-uninstalled.pc
