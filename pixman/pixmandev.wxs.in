@@ -1,0 +1,33 @@
+<?xml version='1.0'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+   <Module Id='PixmanDev' Language='1033' Version='@VERSION@'>
+      <Package Id='13f78050-5136-4392-904a-98499e1e2263' Description='Pixman devlopement package'
+                Comments='This is a windows installer for pixman library devlopment files'
+                Manufacturer='Gnome4Win' InstallerVersion='200' />
+ 
+      <Directory Id='TARGETDIR' Name='SourceDir'>
+		  <Directory Id='include' Name='include'>
+			  <Directory Id='pixman_1' Name='pixman-1'>
+				  <Component Id='headers' Guid='a148ae2f-d8fc-4f5d-8793-37851e59ddb0'>
+					  @HEADERS@
+				  </Component>
+			  </Directory>
+		  </Directory>
+		  <Directory Id='lib' Name='lib'>
+			  <Component Id='libs' Guid='4fc9d81e-9433-4b51-9c43-79e2161c764d'>
+				  @LIBS@
+			  </Component>
+			  <Directory Id='pkgconfig' Name='pkgconfig'>
+				  <Component Id='pcs' Guid='d82e5c7c-7653-411c-af1a-ac73611587bb'>
+					  @PCS@
+				  </Component>
+			  </Directory>
+		  </Directory>
+		  <Directory Id='pdb' Name='pdb'>
+			  <Component Id='pdbs' Guid='e75e153f-3ff0-4bff-ac3d-dee5e7899f9d'>
+				  @PDBS@
+			  </Component>
+		  </Directory>
+      </Directory>
+   </Module>
+</Wix>
