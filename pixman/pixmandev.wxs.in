@@ -23,11 +23,6 @@
 				  </Component>
 			  </Directory>
 		  </Directory>
-		  <Directory Id='pdb' Name='pdb'>
-			  <Component Id='pdbs' Guid='e75e153f-3ff0-4bff-ac3d-dee5e7899f9d'>
-				  @PDBS@
-			  </Component>
-		  </Directory>
       </Directory>
    </Module>
 </Wix>

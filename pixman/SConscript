@@ -124,11 +124,6 @@ env.Alias('install', env.Install('$PREFIX/lib', lib))
 env['DOT_IN_SUBS']['@LIBS@'] = generate_file_element('pixman-1.lib', r'lib', env)
 env.Alias('install', env.Install('$PREFIX/include/pixman-1', ['pixman.h', 'pixman-version.h']))
 env['DOT_IN_SUBS']['@HEADERS@'] = generate_file_element(['pixman.h', 'pixman-version.h'], r'include\\pixman-1', env)
-
-if env['DEBUG'] == 1:
-    env.Alias('install', env.Install('$PREFIX/pdb', env['PDB']))
-    env['DOT_IN_SUBS']['@PDBS@'] = generate_file_element(env['PDB'], r'pdb', env)
-
 env['DOT_IN_SUBS']['@PCS@'] = generate_file_element('pixman-1.pc', r'lib\\pkgconfig', env)
 env.DotIn('pixmandev.wxs', 'pixmandev.wxs.in')
 env.Depends('pixmandev.wxs', 'SConscript')
