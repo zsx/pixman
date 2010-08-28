@@ -1,0 +1,3 @@
+[submodule "waflibs/github"]
+	path = waflibs/github
+	url = git@github.com:zsx/waflib.git
