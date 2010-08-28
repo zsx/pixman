@@ -63,14 +63,11 @@ int main(int argc, char **argv)
 
 @conf
 def check_cflags(self, flags, code = '', **kw):
-        env = self.env.derive()
-        env.CFLAGS = flags
-        kw.update({'fragment': code + '\nint main(int c, char **v){(void)c; (void)v; return 0;}', 'msg':'Checking whether the compiler supports ' + flags, 'env':env, 'mandatory':True})
-        try:
-                self.check_cc(**kw)
-                self.env.CFLAGS += [flags]
-        except ConfigurationError:
-                pass
+	env = self.env.derive()
+	env.CFLAGS = flags
+	kw.update({'fragment': code + '\nint main(int c, char **v){(void)c; (void)v; return 0;}', 'msg':'Checking whether the compiler supports ' + flags, 'env':env, 'mandatory':True})
+	self.check_cc(**kw)
+	self.env.CFLAGS += [flags]
 
 def options(opt):
         cfg = opt.parser.get_option_group('--prefix')
@@ -82,7 +79,7 @@ def options(opt):
         opt.tool_options("perl")
 
 def configure(cfg):
-    	platinfo = PlatInfo()
+	platinfo = PlatInfo()
 	cfg.start_msg('Checking build system type:')
 	cfg.end_msg(platinfo.fullname())
 
@@ -108,30 +105,30 @@ def configure(cfg):
         env = cfg.env.derive()
         pixman_werror = None
         for flags in ('-Werror', '-errwarn'):
-                try:
-                        env.CFLAGS=[flags]
-                        cfg.check_cc(fragment='int main(int c, char **v){(void)c; (void)v; return 0;}', msg='Checking whether the compiler supports ' + flags, okmsg=flags, env=env)
-                        pixman_werror = flags
-                        break
-                except:
-                        continue
+			try:
+				env.CFLAGS=[flags]
+				cfg.check_cc(fragment='int main(int c, char **v){(void)c; (void)v; return 0;}', msg='Checking whether the compiler supports ' + flags, okmsg=flags, env=env)
+				pixman_werror = flags
+				break
+			except:
+				continue
         try:
-                cfg.check_cc(fragment=INCLUDES_DEFAULT + DECL_CODE % (('__amd64',)*2), msg='Checking whether __amd64 is defined') 
-                AMD64_ABI = True
+			cfg.check_cc(fragment=INCLUDES_DEFAULT + DECL_CODE % (('__amd64',)*2), msg='Checking whether __amd64 is defined') 
+			AMD64_ABI = True
         except:
-                AMD64_ABI = False
+			AMD64_ABI = False
 
         if cfg.env.CC_NAME == 'suncc':
-                # Default CFLAGS to -O -g rather than just the -g from AC_PROG_CC
-                # if we're using Sun Studio and neither the user nor a config.site
-                # has set CFLAGS.
-                if cfg.env.CFLAGS == ['-g']:
-                        cfg.env.CFLAGS = ['-O', '-g']
-                # Sun Studio doesn't have an -xarch=mmx flag, so we have to use sse
-                # but if we're building 64-bit, mmx & sse support is on by default and
-                # -xarch=sse throws an error instead
-                if not (getattr(self.env, MMX_CFLAGS, None) or AMD64_ABI):
-                        self.env.MMX_CFLAGS=['-xarch=see']
+			# Default CFLAGS to -O -g rather than just the -g from AC_PROG_CC
+			# if we're using Sun Studio and neither the user nor a config.site
+			# has set CFLAGS.
+			if cfg.env.CFLAGS == ['-g']:
+				cfg.env.CFLAGS = ['-O', '-g']
+			# Sun Studio doesn't have an -xarch=mmx flag, so we have to use sse
+			# but if we're building 64-bit, mmx & sse support is on by default and
+			# -xarch=sse throws an error instead
+			if not (getattr(self.env, MMX_CFLAGS, None) or AMD64_ABI):
+				self.env.MMX_CFLAGS=['-xarch=see']
 
         cfg.check_sizeof('long')
 
@@ -141,23 +138,23 @@ def configure(cfg):
 
         cfg.check_tool('perl')
         if not cfg.check_perl_version():
-                self.fatal('Perl is required to build ' + APPNAME)
+			self.fatal('Perl is required to build ' + APPNAME)
         try:
-                cfg.check_openmp_cflags()
-                env = cfg.env.derive()
-                env.CFLAGS += getattr(cfg.env, 'OPENMP_CFLAGS', [])
-                cfg.check_cc(fragment=OPENMP_CODE, msg='Checking openMP support', env=env)
-                cfg.define('USE_OPENMP')
+			cfg.check_openmp_cflags()
+			env = cfg.env.derive()
+			env.CFLAGS += getattr(cfg.env, 'OPENMP_CFLAGS', [])
+			cfg.check_cc(fragment=OPENMP_CODE, msg='Checking openMP support', env=env)
+			cfg.define('USE_OPENMP')
         except ConfigurationError:
-                pass
+			pass
         
         try:
-                cfg.check_cflags('-fvisibility=hidden', 
+			cfg.check_cflags('-fvisibility=hidden', 
 '''#if defined(__GNUC__) && (__GNUC__ >= 4)
 #else\n error Need GCC 4.0 for visibility\n
 #endif\n''')
         except ConfigurationError:
-                cfg.check_cflags('-xldscope=hidden', '''#if defined(__SUNPRO_C) && (__SUNPRO_C >= 0x550)
+			cfg.check_cflags('-xldscope=hidden', '''#if defined(__SUNPRO_C) && (__SUNPRO_C >= 0x550)
 #else
 error Need Sun Studio 8 for visibility
 #endif''', mandatory=False)
@@ -166,7 +163,7 @@ error Need Sun Studio 8 for visibility
         if not getattr(cfg.env, 'MMX_CFLAGS', None):
                 cfg.env.MMX_CFLAGS = ['-mmmx', '-Winline']
 
-        cfg.write_config_header('config.h')
+	cfg.write_config_header('config.h')
 	print ("env = %s" % cfg.env)
 	print ("options = ", cfg.options)
 
