@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # encoding: utf-8
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 from waflibs import *
 from waflib.Configure import conf, ConfigurationError
 from waflibs.github.autoconf.defaults import INCLUDES_DEFAULT
+import re
 
 out = 'debug'
 top = '.'
@@ -20,7 +22,7 @@ int
 main ()
 {
 #ifndef %s
-  (void) %s;
+#error Not declared
 #endif
 
   return 0;
@@ -60,14 +62,17 @@ int main(int argc, char **argv)
 	return 0;
 }
 '''
+unsupported_options = re.compile(r'Command line warning \w* : ignoring unknown option')
 
 @conf
-def check_cflags(self, flags, code = '', **kw):
-	env = self.env.derive()
-	env.CFLAGS = flags
-	kw.update({'fragment': code + '\nint main(int c, char **v){(void)c; (void)v; return 0;}', 'msg':'Checking whether the compiler supports ' + flags, 'env':env, 'mandatory':True})
-	self.check_cc(**kw)
-	self.env.CFLAGS += [flags]
+def check_cflags(self, flag, code='', **kw):
+    kw.update({'fragment': code + '\nint main(int c, char **v) { (void)c; (void)v; return 0; }',
+              'msg': 'Checking whether compiler supports ' + flag,
+              'compiler': 'c',
+              'msvc_warn': unsupported_options,
+              'cflags': flag,
+              'ccflags': flag})
+    self.check_compile_warn(**kw)
 
 def options(opt):
         cfg = opt.parser.get_option_group('--prefix')
@@ -90,7 +95,6 @@ def configure(cfg):
 	else:
 		cfg.env.host = PlatInfo.from_name(cfg.env.host)
 	cfg.end_msg(cfg.env.host.fullname())
-	glib_native_win32 = (cfg.env.host.os == 'win32')
 
 	cfg.check_tool('compiler_c')
 	try:
@@ -106,17 +110,20 @@ def configure(cfg):
         pixman_werror = None
         for flags in ('-Werror', '-errwarn'):
 			try:
-				env.CFLAGS=[flags]
-				cfg.check_cc(fragment='int main(int c, char **v){(void)c; (void)v; return 0;}', msg='Checking whether the compiler supports ' + flags, okmsg=flags, env=env)
+				cfg.check_cflags(flags)
 				pixman_werror = flags
 				break
 			except:
 				continue
         try:
-			cfg.check_cc(fragment=INCLUDES_DEFAULT + DECL_CODE % (('__amd64',)*2), msg='Checking whether __amd64 is defined') 
+			cfg.check_cc(fragment=INCLUDES_DEFAULT + DECL_CODE % '__amd64', msg='Checking whether __amd64 is defined') 
 			AMD64_ABI = True
         except:
-			AMD64_ABI = False
+            try:
+                cfg.check_cc(fragment=INCLUDES_DEFAULT + DECL_CODE % '_WIN64', msg='Checking whether _WIN64 is defined') 
+                AMD64_ABI = True
+            except:
+                AMD64_ABI = False
 
         if cfg.env.CC_NAME == 'suncc':
 			# Default CFLAGS to -O -g rather than just the -g from AC_PROG_CC
@@ -128,10 +135,9 @@ def configure(cfg):
 			# but if we're building 64-bit, mmx & sse support is on by default and
 			# -xarch=sse throws an error instead
 			if not (getattr(self.env, MMX_CFLAGS, None) or AMD64_ABI):
-				self.env.MMX_CFLAGS=['-xarch=see']
+				self.env.MMX_CFLAGS = ['-xarch=see']
 
         cfg.check_sizeof('long')
-
 
         cfg.check_cflags('-Wall', mandatory=False)
         cfg.check_cflags('-fno-strict-aliasing', mandatory=False)
@@ -142,7 +148,7 @@ def configure(cfg):
         try:
 			cfg.check_openmp_cflags()
 			env = cfg.env.derive()
-			env.CFLAGS += getattr(cfg.env, 'OPENMP_CFLAGS', [])
+			env.append_value('CCFLAGS', getattr(cfg.env, 'OPENMP_CFLAGS', []))
 			cfg.check_cc(fragment=OPENMP_CODE, msg='Checking openMP support', env=env)
 			cfg.define('USE_OPENMP')
         except ConfigurationError:
@@ -164,8 +170,8 @@ error Need Sun Studio 8 for visibility
                 cfg.env.MMX_CFLAGS = ['-mmmx', '-Winline']
 
 	cfg.write_config_header('config.h')
-	print ("env = %s" % cfg.env)
-	print ("options = ", cfg.options)
+    #print ("env = %s" % cfg.env)
+    #print ("options = ", cfg.options)
 
 
 def build(bld):

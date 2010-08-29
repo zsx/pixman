@@ -9,3 +9,5 @@ from github.platinfo import PlatInfo
 from github.autoconf.endian import *
 from github.autoconf.sizeof import *
 from github.autoconf.openmp import *
+
+import misc
