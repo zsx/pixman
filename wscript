@@ -5,7 +5,9 @@
 from waflibs import *
 from waflib.Configure import conf, ConfigurationError
 from waflibs.github.autoconf.defaults import INCLUDES_DEFAULT
+from waflib import Context
 import re
+import os
 
 out = 'debug'
 top = '.'
@@ -28,7 +30,7 @@ main ()
   return 0;
 }
 '''
-OPENMP_CODE = '''
+OPENMP_CODE = r'''
 #include <stdio.h>
 
 extern unsigned int lcg_seed;
@@ -49,8 +51,8 @@ int main(int argc, char **argv)
 	int verbose = argv != NULL;
 	unsigned (*test_function)(unsigned, unsigned);
 	test_function = function;
-    #pragma omp parallel for reduction(+:checksum) default(none) \
-					shared(n1, n2, test_function, verbose)
+#pragma omp parallel for reduction(+:checksum) default(none) \
+	shared(n1, n2, test_function, verbose)
 	for (i = n1; i < n2; i++)
     	{
 		unsigned crc = test_function (i, 0);
@@ -60,6 +62,33 @@ int main(int argc, char **argv)
 	}
 	printf("%u\n", checksum);
 	return 0;
+}
+'''
+
+MMX_CODE='''
+#if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
+error "Need GCC >= 3.4 for MMX intrinsics"
+#endif
+#include <mmintrin.h>
+int main () {
+    __m64 v = _mm_cvtsi32_si64 (1);
+    return _mm_cvtsi64_si32 (v);
+}
+'''
+
+SSE2_CODE='''
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 2))
+#   if !defined(__amd64__) && !defined(__x86_64__)
+#      error "Need GCC >= 4.2 for SSE2 intrinsics on x86"
+#   endif
+#endif
+#include <mmintrin.h>
+#include <xmmintrin.h>
+#include <emmintrin.h>
+int main () {
+    __m128i a = _mm_set1_epi32 (0), b = _mm_set1_epi32 (0), c;
+	c = _mm_xor_si128 (a, b);
+    return 0;
 }
 '''
 unsupported_options = re.compile(r'Command line warning \w* : ignoring unknown option')
@@ -79,7 +108,8 @@ def options(opt):
 	bld = opt.parser.get_option_group('-p')
 
 	cfg.add_option('--host', action='store', default=None, dest='host', help='cross-compile to build programs to run on HOST')
-	cfg.add_option('--disable-mmx', action='store_false', dest='mmx', default=None, help='disable MMX fast paths')
+	cfg.add_option('--disable-mmx', action='store_false', dest='mmx', default=None, help='disable MMX fast paths (default:auto)')
+	cfg.add_option('--disable-sse2', action='store_false', dest='sse2', default=None, help='disable SSE2 fast paths (default:auto)')
         opt.tool_options("compiler_c")
         opt.tool_options("perl")
 
@@ -93,7 +123,7 @@ def configure(cfg):
 	if not cfg.env.host:
 		cfg.env.host = platinfo
 	else:
-		cfg.env.host = PlatInfo.from_name(cfg.env.host)
+		cfg.env.host = PlatInfo.from_name(cfg.options.host)
 	cfg.end_msg(cfg.env.host.fullname())
 
 	cfg.check_tool('compiler_c')
@@ -125,17 +155,12 @@ def configure(cfg):
             except:
                 AMD64_ABI = False
 
-        if cfg.env.CC_NAME == 'suncc':
+        if cfg.env.CC_NAME == 'sun':
 			# Default CFLAGS to -O -g rather than just the -g from AC_PROG_CC
 			# if we're using Sun Studio and neither the user nor a config.site
 			# has set CFLAGS.
 			if cfg.env.CFLAGS == ['-g']:
 				cfg.env.CFLAGS = ['-O', '-g']
-			# Sun Studio doesn't have an -xarch=mmx flag, so we have to use sse
-			# but if we're building 64-bit, mmx & sse support is on by default and
-			# -xarch=sse throws an error instead
-			if not (getattr(self.env, MMX_CFLAGS, None) or AMD64_ABI):
-				self.env.MMX_CFLAGS = ['-xarch=see']
 
         cfg.check_sizeof('long')
 
@@ -146,11 +171,11 @@ def configure(cfg):
         if not cfg.check_perl_version():
 			self.fatal('Perl is required to build ' + APPNAME)
         try:
-			cfg.check_openmp_cflags()
+			cfg.check_openmp_cflags(uselib_store='OPENMP')
 			env = cfg.env.derive()
 			env.append_value('CCFLAGS', getattr(cfg.env, 'OPENMP_CFLAGS', []))
-			cfg.check_cc(fragment=OPENMP_CODE, msg='Checking openMP support', env=env)
-			cfg.define('USE_OPENMP')
+			env.append_value('LINKFLAGS', getattr(cfg.env, 'OPENMP_LINKFLAGS', []))
+			cfg.check_cc(fragment=OPENMP_CODE, msg='Checking OpenMP support', define_name='USE_OPENMP', env=env)
         except ConfigurationError:
 			pass
         
@@ -166,9 +191,61 @@ error Need Sun Studio 8 for visibility
 #endif''', mandatory=False)
 
 
+	#==========================================
+	#Check for MMX
         if not getattr(cfg.env, 'MMX_CFLAGS', None):
-                cfg.env.MMX_CFLAGS = ['-mmmx', '-Winline']
+		if 'sun' in cfg.env.CC_NAME:
+			# Sun Studio doesn't have an -xarch=mmx flag, so we have to use sse
+			# but if we're building 64-bit, mmx & sse support is on by default and
+			# -xarch=sse throws an error instead
+			if not AMD64_ABI:
+				self.env.MMX_CFLAGS = ['-xarch=see']
+		else:
+			cfg.env.MMX_CFLAGS = ['-mmmx', '-Winline']
+	
+	if cfg.options.mmx != False:
+		try:
+			cfg.check_cc(fragment=MMX_CODE, uselib_store='MMX', msg='Checking for mmx support', ccflags=cfg.env.MMX_CFLAGS, define_name='USE_MMX')
+		except ConfigurationError:
+			cfg.env.MMX_CFLAGS = []
+			if cfg.options.mmx:
+				cfg.fatal('MMX intrinsics not detected')
+	#==========================================
+	#Check for SSE2
+        if not getattr(cfg.env, 'SSE2_CFLAGS', None):
+		if 'sun' in cfg.env.CC_NAME:
+			# Sun Studio doesn't have an -xarch=mmx flag, so we have to use sse
+			# but if we're building 64-bit, mmx & sse support is on by default and
+			# -xarch=sse throws an error instead
+			if not AMD64_ABI:
+				self.env.SSE2_CFLAGS = ['-xarch=see']
+		else:
+			cfg.env.SSE2_CFLAGS = ['-mmmx', '-msse2', '-Winline']
+	if cfg.options.sse2 != False:
+		try:
+			cfg.check_cc(fragment=SSE2_CODE, uselib_store='SSE2', msg='Checking for sse2 support', ccflags=cfg.env.SSE2_CFLAGS, define_name='USE_SSE2')
+		except ConfigurationError:
+			cfg.env.SSE2_CFLAGS = []
+			if cfg.options.sse2:
+				cfg.fatal('SSE2 intrinsics not detected')
 
+	#============================================================
+	# Other special flags needed when building code using MMX or SSE instructions
+	if cfg.env.host.os == 'solaris':
+	      # When building 32-bit binaries, apply a mapfile to ensure that the
+	      # binaries aren't flagged as only able to run on MMX+SSE capable CPUs
+	      # since they check at runtime before using those instructions.
+	      # Not all linkers grok the mapfile format so we check for that first.
+		if not AMD64_ABI:
+			HWCAP_LINKFLAGS='-Wl,-M,'+ os.path.join(os.path.dirname(Context.g_module.root_path), 'pixman', 'solaris-hwcap.mapfile')
+			try:
+				cfg.check_cc(linkflags=HWCAP_LINKFLAGS, msg='Checking whether to use a hardware capability map file', errmsg='no')
+				if getattr(cfg.env, 'MMX_LINKFLAGS', None):
+					self.env.MMX_LINKFLAGS = HWCAP_LINKFLAGS
+				if getattr(cfg.env, 'SSE2_LINKFLAGS', None):
+					cfg.env.SSE2_LINKFLAGS = HWCAP_LINKFLAGS
+			except ConfigurationError:
+				pass
 	cfg.write_config_header('config.h')
     #print ("env = %s" % cfg.env)
     #print ("options = ", cfg.options)
