@@ -6,6 +6,7 @@ from waflibs import *
 from waflib.Configure import conf, ConfigurationError
 from waflibs.github.autoconf.defaults import INCLUDES_DEFAULT
 from waflib import Context
+from waflib import Utils
 import re
 import os
 
@@ -91,6 +92,19 @@ int main () {
     return 0;
 }
 '''
+
+VMX_CODE='''
+#if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
+error "Need GCC >= 3.4 for sane altivec support"
+#endif
+#include <altivec.h>
+int main () {
+    vector unsigned int v = vec_splat_u32 (1);
+    v = vec_sub (v, v);
+    return 0;
+}
+'''
+
 unsupported_options = re.compile(r'Command line warning \w* : ignoring unknown option')
 
 @conf
@@ -110,6 +124,7 @@ def options(opt):
 	cfg.add_option('--host', action='store', default=None, dest='host', help='cross-compile to build programs to run on HOST')
 	cfg.add_option('--disable-mmx', action='store_false', dest='mmx', default=None, help='disable MMX fast paths (default:auto)')
 	cfg.add_option('--disable-sse2', action='store_false', dest='sse2', default=None, help='disable SSE2 fast paths (default:auto)')
+	cfg.add_option('--disable-vmx', action='store_false', dest='vmx', default=None, help='disable VMX fast paths (default:auto)')
         opt.tool_options("compiler_c")
         opt.tool_options("perl")
 
@@ -246,9 +261,27 @@ error Need Sun Studio 8 for visibility
 					cfg.env.SSE2_LINKFLAGS = HWCAP_LINKFLAGS
 			except ConfigurationError:
 				pass
+	#================================================================
+	#Check for VMX/Altivec
+	ver = cfg.cmd_and_log(Utils.subst_vars('${CC} -v 2>&1', cfg.env))
+	for x in ver.split('\n'):
+		if x.find('version') > 0 and x.find('Apple') > 0:
+			cfg.env.VMX_CFLAGS = '-faltivec'
+			break
+	if getattr(cfg.env, 'VMX_CFLAGS', []):
+		cfg.env.VMX_CFLAGS = '-maltivec -mabi=altivec'
+		
+	if cfg.options.vmx != False:
+		try:
+			cfg.check_cc(fragment=VMX_CODE, uselib_store='VMX', msg='Checking for vmx support', ccflags=cfg.env.VMX_CFLAGS, define_name='USE_VMX')
+		except ConfigurationError:
+			cfg.env.VMX_CFLAGS = []
+			if cfg.options.vmx:
+				cfg.fatal('VMX intrinsics not detected')
+
 	cfg.write_config_header('config.h')
-    #print ("env = %s" % cfg.env)
-    #print ("options = ", cfg.options)
+	#print ("env = %s" % cfg.env)
+	#print ("options = ", cfg.options)
 
 
 def build(bld):
