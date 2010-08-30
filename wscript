@@ -262,7 +262,7 @@ def configure(cfg):
         if cfg.env.CFLAGS == ['-g']:
             cfg.env.CFLAGS = ['-O', '-g']
 
-        cfg.check_sizeof('long')
+    cfg.check_sizeof('long')
 
     cfg.check_cflags('-Wall', mandatory=False)
     cfg.check_cflags('-fno-strict-aliasing', mandatory=False)
@@ -426,7 +426,6 @@ error Need Sun Studio 8 for visibility
     cfg.write_config_header('config.h')
     #print ("env = %s" % cfg.env)
     #print ("options = ", cfg.options)
-
 
 def build(bld):
     bld(source=['pixman-1.pc.in', 'pixman-1-uninstalled.pc.in'])
