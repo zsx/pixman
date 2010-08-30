@@ -410,14 +410,14 @@ error Need Sun Studio 8 for visibility
         kw = {'fragment': TLS_CODE, 'ccflags': '-D_REENTRANT', 'libs': '-lpthread', 'compiler': 'c', 'define_name': 'HAVE_PTHREAD_SETSPECIFIC', 'uselib_store': 'PTHREAD'}
         try:
             cfg.validate_c(kw)
-            cfg.run_c_code(**kw)
+            kw['success'] = cfg.run_c_code(**kw)
             cfg.post_check(**kw)
             cfg.end_msg('yes')
         except ConfigurationError:
             kw.update({'ccflags': '-pthread', 'linkflags': '-pthread'})
             del kw['libs']
             cfg.validate_c(kw)
-            cfg.run_c_code(**kw)
+            kw['success'] = cfg.run_c_code(**kw)
             cfg.post_check(**kw)
             cfg.end_msg('yes')
     except ConfigurationError:
