@@ -300,8 +300,8 @@ error Need Sun Studio 8 for visibility
             # -xarch=sse throws an error instead
             if not AMD64_ABI:
                 self.env.MMX_CFLAGS = ['-xarch=see']
-    else:
-        cfg.env.MMX_CFLAGS = ['-mmmx', '-Winline']
+        else:
+            cfg.env.MMX_CFLAGS = ['-mmmx', '-Winline']
     
     if cfg.options.mmx != False:
         try:
@@ -319,8 +319,9 @@ error Need Sun Studio 8 for visibility
             # -xarch=sse throws an error instead
             if not AMD64_ABI:
                 self.env.SSE2_CFLAGS = ['-xarch=see']
-    else:
-        cfg.env.SSE2_CFLAGS = ['-mmmx', '-msse2', '-Winline']
+        else:
+            cfg.env.SSE2_CFLAGS = ['-mmmx', '-msse2', '-Winline']
+
     if cfg.options.sse2 != False:
         try:
             cfg.check_cc(fragment=SSE2_CODE, uselib_store='SSE2', msg='Checking for sse2 support', ccflags=cfg.env.SSE2_CFLAGS, define_name='USE_SSE2')
@@ -367,12 +368,12 @@ error Need Sun Studio 8 for visibility
     # ==========================================================================
     # Check if assembler is gas compatible and supports ARM SIMD instructions
     if cfg.options.arm_simd != False:
-        cfg.check_cc(fragment=ARM_SIMD_CODE, ccflags='-x assembler-with-cpp $CFLAGS', msg='Checking whether to use ARM SIMD assembler', define_name='USE_ARM_SIMD', mandatory=False)
+        cfg.check_cc(fragment=ARM_SIMD_CODE, ccflags='-x assembler-with-cpp', msg='Checking whether to use ARM SIMD assembler', define_name='USE_ARM_SIMD', mandatory=False)
 
     # ==========================================================================
     # Check if assembler is gas compatible and supports NEON instructions
     if cfg.options.arm_neon != False:
-        cfg.check_cc(fragment=ARM_NEON_CODE, ccflags='-x assembler-with-cpp $CFLAGS', msg='Checking whether to use ARM NEON assembler', define_name='USE_ARM_NEON', mandatory=False)
+        cfg.check_cc(fragment=ARM_NEON_CODE, ccflags='-x assembler-with-cpp', msg='Checking whether to use ARM NEON assembler', define_name='USE_ARM_NEON', mandatory=False)
 
     # =========================================================================================
     # Check for GNU-style inline assembly support
@@ -384,17 +385,17 @@ error Need Sun Studio 8 for visibility
     # GTK+
     if cfg.options.gtk in (True, None):
         try:
-            cfg.check_cc(lib='pixman-1', function_name='pixman_version_string')
-            cfg.check_cfg(['gtk+-2.0'])
-            cfg.check_cfg(['pixman-1'])
+            cfg.check_cfg('pixman-1 --cflags --libs', uselib_store='PIXMAN')
+            cfg.check_cc(lib='pixman-1', function_name='pixman_version_string', header_name='pixman.h', includes=cfg.env.INCLUDES_PIXMAN, ccflags=cfg.env.CCFLAGS_PIXMAN, linkflags=cfg.env.LINKFLAGS_PIXMAN)
+            cfg.check_cfg('gtk+-2.0 --cflags --libs')
             cfg.define('HAVE_GTK', 1)
         except ConfigurationError:
             pass
     # =====================================
     # posix_memalign, sigaction, alarm
-    cfg.check_cc(function_name='posix_memalign', mandatory=False)
-    cfg.check_cc(function_name='sigaction', mandatory=False)
-    cfg.check_cc(function_name='alarm', mandatory=False)
+    cfg.check_cc(function_name='posix_memalign', header_name='stdlib.h', mandatory=False)
+    cfg.check_cc(function_name='sigaction', header_name='signal.h', mandatory=False)
+    cfg.check_cc(function_name='alarm', header_name='unistd.h', mandatory=False)
 
     # =====================================
     # Thread local storage
