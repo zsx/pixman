@@ -93,7 +93,7 @@ int main () {
 }
 '''
 
-VMX_CODE='''
+VMX_CODE = r'''
 #if defined(__GNUC__) && (__GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
 error "Need GCC >= 3.4 for sane altivec support"
 #endif
@@ -101,6 +101,87 @@ error "Need GCC >= 3.4 for sane altivec support"
 int main () {
     vector unsigned int v = vec_splat_u32 (1);
     v = vec_sub (v, v);
+    return 0;
+}
+'''
+
+ARM_SIMD_CODE = r'''
+.text
+.arch armv6
+.object_arch armv4
+.arm
+.altmacro
+#ifndef __ARM_EABI__
+#error EABI is required (to be sure that calling conventions are compatible)
+#endif
+pld [r0]
+uqadd8 r0, r0, r0
+'''
+
+ARM_NEON_CODE = r'''
+.text
+.fpu neon
+.arch armv7a
+.object_arch armv4
+.eabi_attribute 10, 0
+.arm
+.altmacro
+#ifndef __ARM_EABI__
+#error EABI is required (to be sure that calling conventions are compatible)
+#endif
+pld [r0]
+vmovn.u16 d0, q0
+'''
+
+GNUC_INLINE_ASM_CODE = r'''
+int main () {
+    /* Most modern architectures have a NOP instruction, so this is a fairly generic test. */
+	asm volatile ( "\tnop\n" : : : "cc", "memory" );
+    return 0;
+}
+'''
+THREAD_LOCAL_CODE = r'''
+#ifdef __MINGW32__
+#error MinGW has broken __thread support
+#endif
+#ifdef __OpenBSD__
+#error OpenBSD has broken __thread support
+#endif
+static __thread int x ;
+int main () { x = 123; return x; }
+'''
+
+TLS_CODE = r'''
+#include <stdlib.h>
+#include <pthread.h>
+
+static pthread_once_t once_control = PTHREAD_ONCE_INIT;
+static pthread_key_t key;
+
+static void
+make_key (void)
+{
+    pthread_key_create (&key, NULL);
+}
+
+int
+main ()
+{
+    void *value = NULL;
+
+    if (pthread_once (&once_control, make_key) != 0)
+    {
+	value = NULL;
+    }
+    else
+    {
+	value = pthread_getspecific (key);
+	if (!value)
+	{
+	    value = malloc (100);
+	    pthread_setspecific (key, value);
+	}
+    }
     return 0;
 }
 '''
@@ -125,6 +206,10 @@ def options(opt):
     cfg.add_option('--disable-mmx', action='store_false', dest='mmx', default=None, help='disable MMX fast paths (default:auto)')
     cfg.add_option('--disable-sse2', action='store_false', dest='sse2', default=None, help='disable SSE2 fast paths (default:auto)')
     cfg.add_option('--disable-vmx', action='store_false', dest='vmx', default=None, help='disable VMX fast paths (default:auto)')
+    cfg.add_option('--disable-arm-simd', action='store_false', dest='arm_simd', default=None, help='disable ARM SIMD fast paths (default:auto)')
+    cfg.add_option('--disable-arm-neon', action='store_false', dest='arm_neon', default=None, help='disable ARM NEON fast paths (default:auto)')
+    cfg.add_option('--enable-timers', action='store_true', dest='timers', default=False, help='enable TIMER_BEGIN and TIMER_END macros (default:no)')
+    cfg.add_option('--enable-gtk', action='store_true', dest='gtk', default=None, help='enable tests using GTK+ (default:auto)')
     opt.tool_options("compiler_c")
     opt.tool_options("perl")
 
@@ -279,6 +364,60 @@ error Need Sun Studio 8 for visibility
             cfg.env.VMX_CFLAGS = []
             if cfg.options.vmx:
                 cfg.fatal('VMX intrinsics not detected')
+    # ==========================================================================
+    # Check if assembler is gas compatible and supports ARM SIMD instructions
+    if cfg.options.arm_simd != False:
+        cfg.check_cc(fragment=ARM_SIMD_CODE, ccflags='-x assembler-with-cpp $CFLAGS', msg='Checking whether to use ARM SIMD assembler', define_name='USE_ARM_SIMD', mandatory=False)
+
+    # ==========================================================================
+    # Check if assembler is gas compatible and supports NEON instructions
+    if cfg.options.arm_neon != False:
+        cfg.check_cc(fragment=ARM_NEON_CODE, ccflags='-x assembler-with-cpp $CFLAGS', msg='Checking whether to use ARM NEON assembler', define_name='USE_ARM_NEON', mandatory=False)
+
+    # =========================================================================================
+    # Check for GNU-style inline assembly support
+    cfg.check_cc(fragment=GNUC_INLINE_ASM_CODE, msg='Checking whether to use GNU-style inline assembler', define_name='USE_GCC_INLINE_ASM', mandatory=False)
+
+    cfg.define_cond('PIXMAN_TIMERS', cfg.options.timers)
+
+    # ===================================
+    # GTK+
+    if cfg.options.gtk in (True, None):
+        try:
+            cfg.check_cc(lib='pixman-1', function_name='pixman_version_string')
+            cfg.check_cfg(['gtk+-2.0'])
+            cfg.check_cfg(['pixman-1'])
+            cfg.define('HAVE_GTK', 1)
+        except ConfigurationError:
+            pass
+    # =====================================
+    # posix_memalign, sigaction, alarm
+    cfg.check_cc(function_name='posix_memalign', mandatory=False)
+    cfg.check_cc(function_name='sigaction', mandatory=False)
+    cfg.check_cc(function_name='alarm', mandatory=False)
+
+    # =====================================
+    # Thread local storage
+    try:
+        cfg.check_cc(fragment=THREAD_LOCAL_CODE, define_name='TOOLCHAIN_SUPPORTS__THREAD', msg='Checking for __thread')
+
+        # posix tls
+        cfg.start_msg('Checking for pthread_setspecific')
+        kw = {'fragment': TLS_CODE, 'ccflags': '-D_REENTRANT', 'libs': '-lpthread', 'compiler': 'c', 'define_name': 'HAVE_PTHREAD_SETSPECIFIC', 'uselib_store': 'PTHREAD'}
+        try:
+            cfg.validate_c(kw)
+            cfg.run_c_code(**kw)
+            cfg.post_check(**kw)
+            cfg.end_msg('yes')
+        except ConfigurationError:
+            kw.update({'ccflags': '-pthread', 'linkflags': '-pthread'})
+            del kw['libs']
+            cfg.validate_c(kw)
+            cfg.run_c_code(**kw)
+            cfg.post_check(**kw)
+            cfg.end_msg('yes')
+    except ConfigurationError:
+        cfg.end_msg('no', 'YELLOW')
 
     cfg.write_config_header('config.h')
     #print ("env = %s" % cfg.env)
@@ -286,4 +425,4 @@ error Need Sun Studio 8 for visibility
 
 
 def build(bld):
-        pass
+    bld(source=['pixman-1.pc.in', 'pixman-1-uninstalled.pc.in'])
