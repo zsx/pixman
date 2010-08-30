@@ -386,7 +386,10 @@ error Need Sun Studio 8 for visibility
     if cfg.options.gtk in (True, None):
         try:
             cfg.check_cfg('pixman-1 --cflags --libs', uselib_store='PIXMAN')
-            cfg.check_cc(lib='pixman-1', function_name='pixman_version_string', header_name='pixman.h', includes=cfg.env.INCLUDES_PIXMAN, ccflags=cfg.env.CCFLAGS_PIXMAN, linkflags=cfg.env.LINKFLAGS_PIXMAN)
+            if cfg.env.CC_NAME == 'msvc':
+                #FIXME don't understand why it conflicts with msvcrtd.lib
+                cfg.env.append_value('LINKFLAGS_PIXMAN', '/NODEFAULTLIB:libcmt.lib')
+            cfg.check_cc(lib='pixman-1', function_name='pixman_version_string', header_name='pixman.h', includes=cfg.env.INCLUDES_PIXMAN, ccflags=cfg.env.CCFLAGS_PIXMAN, libs=cfg.env.LIB_PIXMAN, libpath=cfg.env.LIBPATH_PIXMAN, linkflags=cfg.env.LINKFLAGS_PIXMAN)
             cfg.check_cfg('gtk+-2.0 --cflags --libs')
             cfg.define('HAVE_GTK', 1)
         except ConfigurationError:
