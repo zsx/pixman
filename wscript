@@ -221,10 +221,11 @@ def configure(cfg):
     cfg.start_msg('Checking host system type:')
     cfg.env.host = cfg.options.host
     if not cfg.env.host:
-        cfg.env.host = platinfo
+        cfg.env.host = platinfo.fullname()
+        host = platinfo
     else:
-        cfg.env.host = PlatInfo.from_name(cfg.options.host)
-    cfg.end_msg(cfg.env.host.fullname())
+        host = PlatInfo.from_name(cfg.env.host)
+    cfg.end_msg(cfg.env.host)
 
     cfg.check_tool('compiler_c')
     try:
@@ -332,7 +333,7 @@ error Need Sun Studio 8 for visibility
 
     #============================================================
     # Other special flags needed when building code using MMX or SSE instructions
-    if cfg.env.host.os == 'solaris':
+    if host.os == 'solaris':
           # When building 32-bit binaries, apply a mapfile to ensure that the
           # binaries aren't flagged as only able to run on MMX+SSE capable CPUs
           # since they check at runtime before using those instructions.
