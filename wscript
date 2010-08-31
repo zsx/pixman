@@ -7,6 +7,7 @@ from waflib.Configure import conf, ConfigurationError
 from waflibs.github.autoconf.defaults import INCLUDES_DEFAULT
 from waflib import Context
 from waflib import Utils
+from waflib.TaskGen import extension
 import re
 import os
 
@@ -214,18 +215,21 @@ def options(opt):
     opt.tool_options("perl")
 
 def configure(cfg):
+    cfg.env.PIXMAN_VERSION_MAJOR = [str(pixman_major)]
+    cfg.env.PIXMAN_VERSION_MINOR = [str(pixman_minor)]
+    cfg.env.PIXMAN_VERSION_MICRO = [str(pixman_micro)]
     platinfo = PlatInfo()
     cfg.start_msg('Checking build system type:')
     cfg.end_msg(platinfo.fullname())
 
     cfg.start_msg('Checking host system type:')
-    cfg.env.host = cfg.options.host
-    if not cfg.env.host:
-        cfg.env.host = platinfo.fullname()
+    if not cfg.options.host:
+        cfg.env.host = [platinfo.fullname()]
         host = platinfo
     else:
-        host = PlatInfo.from_name(cfg.env.host)
-    cfg.end_msg(cfg.env.host)
+        cfg.env.host = [cfg.options.host]
+        host = PlatInfo.from_name(cfg.options.host)
+    cfg.end_msg(host.fullname())
 
     cfg.check_tool('compiler_c')
     try:
@@ -428,5 +432,17 @@ error Need Sun Studio 8 for visibility
     #print ("env = %s" % cfg.env)
     #print ("options = ", cfg.options)
 
+@extension('.h.in')
+def add_hfile(self, node):
+	tsk = self.create_task('subst_pc', node, node.change_ext('.h'))
+
 def build(bld):
-    bld(source=['pixman-1.pc.in', 'pixman-1-uninstalled.pc.in'])
+    bld(source=['pixman-1.pc.in', 'pixman-1-uninstalled.pc.in'], 
+        exec_prefix='${prefix}/bin', 
+        libdir='${prefix}/lib', 
+        includedir='${prefix}/include', 
+        PACKAGE_VERSION=VERSION, 
+        DEP_CFLAGS=bld.env.PTHREAD_CFALGS, 
+        DEP_LIBS=bld.env.PTHREAD_LIBS, 
+        quiet=True)
+    bld.recurse('pixman test')

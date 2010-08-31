@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+# encoding: utf-8
+# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
+import os
+
+bld(target='pixman-version.h',
+    source='pixman-version.h.in')
+
+bld.stlib(target='pixman',
+          source = '\
+                  pixman-access.c				\
+                  pixman-access-accessors.c		\
+                  pixman-cpu.c				\
+                  pixman-gradient-walker.c		\
+                  pixman-region16.c			\
+                  pixman-region32.c			\
+                  pixman-image.c				\
+                  pixman-implementation.c			\
+                  pixman-combine32.c			\
+                  pixman-combine64.c			\
+                  pixman-general.c			\
+                  pixman.c				\
+                  pixman-fast-path.c			\
+                  pixman-solid-fill.c			\
+                  pixman-conical-gradient.c		\
+                  pixman-linear-gradient.c		\
+                  pixman-radial-gradient.c		\
+                  pixman-bits-image.c			\
+                  pixman-utils.c				\
+                  pixman-edge.c				\
+                  pixman-edge-accessors.c			\
+                  pixman-trap.c				\
+                  pixman-timer.c				\
+                  pixman-matrix.c',
+          includes=[bld.out_dir, '.'],
+          defines=['PACKAGE=pixman', 'HAVE_CONFIG_H'],
+          libs=bld.env.PTHREAD_LIB + (bld.env.CC_NAME != 'msvc' and ['m'] or []))
+bld(target='pixman-combine32.c',
+    source=['make-combine.pl', 'pixman-combine.c.template'],
+    rule='"${PERL}" "${SRC[0].abspath()}" 8 < "${SRC[1].abspath()}" > "${TGT}"')
+bld(target='pixman-combine32.h',
+    source=['make-combine.pl', 'pixman-combine.h.template'],
+    rule='"${PERL}" "${SRC[0].abspath()}" 8 < "${SRC[1].abspath()}" > "${TGT}"')
+bld(target='pixman-combine64.c',
+    source=['make-combine.pl', 'pixman-combine.c.template'],
+    rule='"${PERL}" "${SRC[0].abspath()}" 8 < "${SRC[1].abspath()}" > "${TGT}"')
+bld(target='pixman-combine64.h',
+    source=['make-combine.pl', 'pixman-combine.h.template'],
+    rule='"${PERL}" "${SRC[0].abspath()}" 8 < "${SRC[1].abspath()}" > "${TGT}"')
+
