@@ -305,7 +305,7 @@ error Need Sun Studio 8 for visibility
             # -xarch=sse throws an error instead
             if not AMD64_ABI:
                 self.env.MMX_CFLAGS = ['-xarch=see']
-        else:
+        elif 'msvc' not in cfg.env.CC_NAME:
             cfg.env.MMX_CFLAGS = ['-mmmx', '-Winline']
     
     if cfg.options.mmx != False:
@@ -324,7 +324,7 @@ error Need Sun Studio 8 for visibility
             # -xarch=sse throws an error instead
             if not AMD64_ABI:
                 self.env.SSE2_CFLAGS = ['-xarch=see']
-        else:
+        elif 'msvc' not in cfg.env.CC_NAME:
             cfg.env.SSE2_CFLAGS = ['-mmmx', '-msse2', '-Winline']
 
     if cfg.options.sse2 != False:
