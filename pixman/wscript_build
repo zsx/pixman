@@ -2,6 +2,7 @@
 # encoding: utf-8
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import os
+import sys
 
 bld(target='pixman-version.h',
     source='pixman-version.h.in')
@@ -35,16 +36,31 @@ bld.stlib(target='pixman',
           includes=[bld.out_dir, '.'],
           defines=['PACKAGE=pixman', 'HAVE_CONFIG_H'],
           libs=bld.env.PTHREAD_LIB + (bld.env.CC_NAME != 'msvc' and ['m'] or []))
+
+def make_combine(task, bits):
+    script = task.inputs[0].abspath()
+    tmpl = task.inputs[1].abspath()
+    target = task.outputs[0].abspath()
+    cmd = '"%s" "%s" %d < "%s" > "%s"' % (task.generator.bld.env.PERL, script, bits, tmpl, target)
+    if sys.platform == 'win32':
+        cmd = '"' + cmd + '"' #extra quotes for win32, see Frederic's reply on http://groups.google.com/group/comp.lang.python/browse_thread/thread/775ca566af9a70c2/65504296a27b43d5?lnk=gst&q=subprocess+windows+spaces#65504296a27b43d5 or try 'cmd /?' to see how " is interpreted by 'cmd.exe'
+    return task.exec_command(cmd)
+
+def make_combine32(task):
+    return make_combine(task, 8)
+
+def make_combine64(task):
+    return make_combine(task, 16)
+
 bld(target='pixman-combine32.c',
     source=['make-combine.pl', 'pixman-combine.c.template'],
-    rule='"${PERL}" "${SRC[0].abspath()}" 8 < "${SRC[1].abspath()}" > "${TGT}"')
+    rule=make_combine32)
 bld(target='pixman-combine32.h',
     source=['make-combine.pl', 'pixman-combine.h.template'],
-    rule='"${PERL}" "${SRC[0].abspath()}" 8 < "${SRC[1].abspath()}" > "${TGT}"')
+    rule=make_combine32)
 bld(target='pixman-combine64.c',
     source=['make-combine.pl', 'pixman-combine.c.template'],
-    rule='"${PERL}" "${SRC[0].abspath()}" 8 < "${SRC[1].abspath()}" > "${TGT}"')
+    rule=make_combine64)
 bld(target='pixman-combine64.h',
     source=['make-combine.pl', 'pixman-combine.h.template'],
-    rule='"${PERL}" "${SRC[0].abspath()}" 8 < "${SRC[1].abspath()}" > "${TGT}"')
-
+    rule=make_combine64)
