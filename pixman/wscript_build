@@ -7,6 +7,83 @@ import sys
 bld(target='pixman-version.h',
     source='pixman-version.h.in')
 
+def make_combine(task, bits):
+    script = task.inputs[0].abspath()
+    tmpl = task.inputs[1].abspath()
+    target = task.outputs[0].abspath()
+    cmd = '"%s" "%s" %d < "%s" > "%s"' % (task.generator.bld.env.PERL, script, bits, tmpl, target)
+    if sys.platform == 'win32':
+        cmd = '"' + cmd + '"' #extra quotes for win32, see Frederic's reply on http://groups.google.com/group/comp.lang.python/browse_thread/thread/775ca566af9a70c2/65504296a27b43d5?lnk=gst&q=subprocess+windows+spaces#65504296a27b43d5 or try 'cmd /?' to see how " is interpreted by 'cmd.exe'
+    return task.exec_command(cmd)
+
+def make_combine32(task):
+    return make_combine(task, 8)
+
+def make_combine64(task):
+    return make_combine(task, 16)
+
+bld(target='pixman-combine32.c',
+    source=['make-combine.pl', 'pixman-combine.c.template'],
+    rule=make_combine32)
+bld(target='pixman-combine32.h',
+    source=['make-combine.pl', 'pixman-combine.h.template'],
+    rule=make_combine32)
+bld(target='pixman-combine64.c',
+    source=['make-combine.pl', 'pixman-combine.c.template'],
+    rule=make_combine64)
+bld(target='pixman-combine64.h',
+    source=['make-combine.pl', 'pixman-combine.h.template'],
+    rule=make_combine64)
+
+local_libs = []
+
+if bld.is_defined('USE_MMX'):
+    bld.stlib(target='pixman-mmx',
+              source=' \
+                      pixman-mmx.c',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.MMX_CFLAGS)
+    local_libs.append('pixman-mmx')
+
+if bld.is_defined('USE_SSE2'):
+    bld.stlib(target='pixman-sse2',
+              source=' \
+                      pixman-sse2.c',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.SSE2_CFLAGS)
+    local_libs.append('pixman-sse2')
+
+if bld.is_defined('USE_VMX'):
+    bld.stlib(target='pixman-vmx',
+              source=' \
+                      pixman-vmx.c',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.VMX_CFLAGS)
+    local_libs.append('pixman-vmx')
+
+if bld.is_defined('USE_ARM_SIMD'):
+    bld.stlib(target='pixman-arm-simd',
+              source=' \
+                      pixman-arm-simd.c \
+                      pixman-arm-simd-asm.S',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.ARM_SIMD_CFLAGS)
+    local_libs.append('pixman-arm-simd')
+
+if bld.is_defined('USE_ARM_NEON'):
+    bld.stlib(target='pixman-arm-neon',
+              source=' \
+                      pixman-arm-neon.c \
+                      pixman-arm-neon-asm.S',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.ARM_NEON_CFLAGS)
+    local_libs.append('pixman-arm-neon')
+
 bld.shlib(target='pixman-1',
           vnum='%s.%s.%s' % (bld.env.PIXMAN_VERSION_MAJOR[0],
                               bld.env.PIXMAN_VERSION_MINOR[0],
@@ -38,70 +115,5 @@ bld.shlib(target='pixman-1',
                   pixman-matrix.c',
           includes=[bld.out_dir, '.'],
           defines=['HAVE_CONFIG_H'],
+          uselib_local = local_libs,
           libs=bld.env.PTHREAD_LIB + (bld.env.CC_NAME != 'msvc' and ['m'] or []))
-
-def make_combine(task, bits):
-    script = task.inputs[0].abspath()
-    tmpl = task.inputs[1].abspath()
-    target = task.outputs[0].abspath()
-    cmd = '"%s" "%s" %d < "%s" > "%s"' % (task.generator.bld.env.PERL, script, bits, tmpl, target)
-    if sys.platform == 'win32':
-        cmd = '"' + cmd + '"' #extra quotes for win32, see Frederic's reply on http://groups.google.com/group/comp.lang.python/browse_thread/thread/775ca566af9a70c2/65504296a27b43d5?lnk=gst&q=subprocess+windows+spaces#65504296a27b43d5 or try 'cmd /?' to see how " is interpreted by 'cmd.exe'
-    return task.exec_command(cmd)
-
-def make_combine32(task):
-    return make_combine(task, 8)
-
-def make_combine64(task):
-    return make_combine(task, 16)
-
-bld(target='pixman-combine32.c',
-    source=['make-combine.pl', 'pixman-combine.c.template'],
-    rule=make_combine32)
-bld(target='pixman-combine32.h',
-    source=['make-combine.pl', 'pixman-combine.h.template'],
-    rule=make_combine32)
-bld(target='pixman-combine64.c',
-    source=['make-combine.pl', 'pixman-combine.c.template'],
-    rule=make_combine64)
-bld(target='pixman-combine64.h',
-    source=['make-combine.pl', 'pixman-combine.h.template'],
-    rule=make_combine64)
-
-if bld.is_defined('USE_MMX'):
-    bld.shlib(target='pixman-mmx',
-              source=' \
-                      pixman-mmx.c',
-              includes=[bld.out_dir, '.'],
-              defines=['HAVE_CONFIG_H'],
-              ccflags=bld.env.MMX_CFLAGS)
-if bld.is_defined('USE_SSE2'):
-    bld.shlib(target='pixman-sse2',
-              source=' \
-                      pixman-sse2.c',
-              includes=[bld.out_dir, '.'],
-              defines=['HAVE_CONFIG_H'],
-              ccflags=bld.env.SSE2_CFLAGS)
-if bld.is_defined('USE_VMX'):
-    bld.shlib(target='pixman-vmx',
-              source=' \
-                      pixman-vmx.c',
-              includes=[bld.out_dir, '.'],
-              defines=['HAVE_CONFIG_H'],
-              ccflags=bld.env.VMX_CFLAGS)
-if bld.is_defined('USE_ARM_SIMD'):
-    bld.shlib(target='pixman-arm-simd',
-              source=' \
-                      pixman-arm-simd.c \
-                      pixman-arm-simd-asm.S',
-              includes=[bld.out_dir, '.'],
-              defines=['HAVE_CONFIG_H'],
-              ccflags=bld.env.ARM_SIMD_CFLAGS)
-if bld.is_defined('USE_ARM_NEON'):
-    bld.shlib(target='pixman-arm-neon',
-              source=' \
-                      pixman-arm-neon.c \
-                      pixman-arm-neon-asm.S',
-              includes=[bld.out_dir, '.'],
-              defines=['HAVE_CONFIG_H'],
-              ccflags=bld.env.ARM_NEON_CFLAGS)
