@@ -274,7 +274,7 @@ def configure(cfg):
 
     cfg.check_tool('perl')
     if not cfg.check_perl_version():
-        self.fatal('Perl is required to build ' + APPNAME)
+        cfg.fatal('Perl is required to build ' + APPNAME)
     try:
         cfg.check_openmp_cflags(uselib_store='OPENMP')
         env = cfg.env.derive()
@@ -304,7 +304,7 @@ error Need Sun Studio 8 for visibility
             # but if we're building 64-bit, mmx & sse support is on by default and
             # -xarch=sse throws an error instead
             if not AMD64_ABI:
-                self.env.MMX_CFLAGS = ['-xarch=see']
+                cfg.env.MMX_CFLAGS = ['-xarch=see']
         elif 'msvc' not in cfg.env.CC_NAME:
             cfg.env.MMX_CFLAGS = ['-mmmx', '-Winline']
     
@@ -323,7 +323,7 @@ error Need Sun Studio 8 for visibility
             # but if we're building 64-bit, mmx & sse support is on by default and
             # -xarch=sse throws an error instead
             if not AMD64_ABI:
-                self.env.SSE2_CFLAGS = ['-xarch=see']
+                cfg.env.SSE2_CFLAGS = ['-xarch=see']
         elif 'msvc' not in cfg.env.CC_NAME:
             cfg.env.SSE2_CFLAGS = ['-mmmx', '-msse2', '-Winline']
 
@@ -347,7 +347,7 @@ error Need Sun Studio 8 for visibility
             try:
                 cfg.check_cc(linkflags=HWCAP_LINKFLAGS, msg='Checking whether to use a hardware capability map file', errmsg='no')
                 if getattr(cfg.env, 'MMX_LINKFLAGS', None):
-                    self.env.MMX_LINKFLAGS = HWCAP_LINKFLAGS
+                    cfg.env.MMX_LINKFLAGS = HWCAP_LINKFLAGS
                 if getattr(cfg.env, 'SSE2_LINKFLAGS', None):
                     cfg.env.SSE2_LINKFLAGS = HWCAP_LINKFLAGS
             except ConfigurationError:
@@ -366,6 +366,7 @@ error Need Sun Studio 8 for visibility
     if cfg.options.vmx != False:
         try:
             cfg.check_cc(fragment=VMX_CODE, uselib_store='VMX', msg='Checking for vmx support', ccflags=cfg.env.VMX_CFLAGS, define_name='USE_VMX')
+            
         except ConfigurationError:
             cfg.env.VMX_CFLAGS = []
             if cfg.options.vmx:
