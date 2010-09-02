@@ -428,8 +428,9 @@ error Need Sun Studio 8 for visibility
             cfg.end_msg('yes')
     except ConfigurationError:
         cfg.end_msg('no', 'YELLOW')
-
-    cfg.write_config_header('config.h')
+    
+    cfg.define('PACKAGE', APPNAME)
+    cfg.write_config_header('config.h', remove=False)
     #print ("env = %s" % cfg.env)
     #print ("options = ", cfg.options)
 

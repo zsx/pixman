@@ -7,7 +7,10 @@ import sys
 bld(target='pixman-version.h',
     source='pixman-version.h.in')
 
-bld.stlib(target='pixman',
+bld.shlib(target='pixman-1',
+          vnum='%s.%s.%s' % (bld.env.PIXMAN_VERSION_MAJOR[0],
+                              bld.env.PIXMAN_VERSION_MINOR[0],
+                              bld.env.PIXMAN_VERSION_MICRO[0]),
           source = '\
                   pixman-access.c				\
                   pixman-access-accessors.c		\
@@ -34,7 +37,7 @@ bld.stlib(target='pixman',
                   pixman-timer.c				\
                   pixman-matrix.c',
           includes=[bld.out_dir, '.'],
-          defines=['PACKAGE=pixman', 'HAVE_CONFIG_H'],
+          defines=['HAVE_CONFIG_H'],
           libs=bld.env.PTHREAD_LIB + (bld.env.CC_NAME != 'msvc' and ['m'] or []))
 
 def make_combine(task, bits):
@@ -64,3 +67,41 @@ bld(target='pixman-combine64.c',
 bld(target='pixman-combine64.h',
     source=['make-combine.pl', 'pixman-combine.h.template'],
     rule=make_combine64)
+
+if bld.is_defined('USE_MMX'):
+    bld.shlib(target='pixman-mmx',
+              source=' \
+                      pixman-mmx.c',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.MMX_CFLAGS)
+if bld.is_defined('USE_SSE2'):
+    bld.shlib(target='pixman-sse2',
+              source=' \
+                      pixman-sse2.c',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.SSE2_CFLAGS)
+if bld.is_defined('USE_VMX'):
+    bld.shlib(target='pixman-vmx',
+              source=' \
+                      pixman-vmx.c',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.VMX_CFLAGS)
+if bld.is_defined('USE_ARM_SIMD'):
+    bld.shlib(target='pixman-arm-simd',
+              source=' \
+                      pixman-arm-simd.c \
+                      pixman-arm-simd-asm.S',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.ARM_SIMD_CFLAGS)
+if bld.is_defined('USE_ARM_NEON'):
+    bld.shlib(target='pixman-arm-neon',
+              source=' \
+                      pixman-arm-neon.c \
+                      pixman-arm-neon-asm.S',
+              includes=[bld.out_dir, '.'],
+              defines=['HAVE_CONFIG_H'],
+              ccflags=bld.env.ARM_NEON_CFLAGS)
