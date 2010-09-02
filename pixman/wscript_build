@@ -3,6 +3,7 @@
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 import os
 import sys
+from waflib import Context
 
 bld(target='pixman-version.h',
     source='pixman-version.h.in')
@@ -84,6 +85,8 @@ if bld.is_defined('USE_ARM_NEON'):
               ccflags=bld.env.ARM_NEON_CFLAGS)
     local_libs.append('pixman-arm-neon')
 
+Context.load_tool('syms')
+
 bld.shlib(target='pixman-1',
           vnum='%s.%s.%s' % (bld.env.PIXMAN_VERSION_MAJOR[0],
                               bld.env.PIXMAN_VERSION_MINOR[0],
@@ -116,4 +119,6 @@ bld.shlib(target='pixman-1',
           includes=[bld.out_dir, '.'],
           defines=['HAVE_CONFIG_H'],
           uselib_local = local_libs,
-          libs=bld.env.PTHREAD_LIB + (bld.env.CC_NAME != 'msvc' and ['m'] or []))
+          libs=bld.env.PTHREAD_LIB + (bld.env.CC_NAME != 'msvc' and ['m'] or []),
+          features='syms',
+          export_symbols_regex='pixman_.*')
