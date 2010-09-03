@@ -260,6 +260,8 @@ def configure(cfg):
         except:
             AMD64_ABI = False
 
+    cfg.check_cc(lib='m', uselib_store='M', mandatory=False)
+
     if cfg.env.CC_NAME == 'sun':
         # Default CFLAGS to -O -g rather than just the -g from AC_PROG_CC
         # if we're using Sun Studio and neither the user nor a config.site

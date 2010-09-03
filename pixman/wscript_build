@@ -12,7 +12,7 @@ def make_combine(task, bits):
     script = task.inputs[0].abspath()
     tmpl = task.inputs[1].abspath()
     target = task.outputs[0].abspath()
-    cmd = '"%s" "%s" %d < "%s" > "%s"' % (task.generator.bld.env.PERL, script, bits, tmpl, target)
+    cmd = '"%s" "%s" %d < "%s" > "%s"' % (task.env.PERL, script, bits, tmpl, target)
     if sys.platform == 'win32':
         cmd = '"' + cmd + '"' #extra quotes for win32, see Frederic's reply on http://groups.google.com/group/comp.lang.python/browse_thread/thread/775ca566af9a70c2/65504296a27b43d5?lnk=gst&q=subprocess+windows+spaces#65504296a27b43d5 or try 'cmd /?' to see how " is interpreted by 'cmd.exe'
     return task.exec_command(cmd)
@@ -38,28 +38,30 @@ bld(target='pixman-combine64.h',
 
 local_libs = []
 
-bld.env.append_value('INCLUDES', [bld.out_dir, '.'])
-bld.env.append_value('DEFINES', 'HAVE_CONFIG_H')
+env = bld.env.derive()
+env.append_value('INCLUDES', [bld.out_dir, '.'])
+env.append_value('DEFINES', 'HAVE_CONFIG_H')
+bld.set_env('default', env)
 
 if bld.is_defined('USE_MMX'):
     bld.stlib(target='pixman-mmx',
               source=' \
                       pixman-mmx.c',
-              ccflags=bld.env.MMX_CFLAGS)
+              use='MMX')
     local_libs.append('pixman-mmx')
 
 if bld.is_defined('USE_SSE2'):
     bld.stlib(target='pixman-sse2',
               source=' \
                       pixman-sse2.c',
-              ccflags=bld.env.SSE2_CFLAGS)
+              use='SSE2')
     local_libs.append('pixman-sse2')
 
 if bld.is_defined('USE_VMX'):
     bld.stlib(target='pixman-vmx',
               source=' \
                       pixman-vmx.c',
-              ccflags=bld.env.VMX_CFLAGS)
+              use='VMX')
     local_libs.append('pixman-vmx')
 
 if bld.is_defined('USE_ARM_SIMD'):
@@ -67,7 +69,7 @@ if bld.is_defined('USE_ARM_SIMD'):
               source=' \
                       pixman-arm-simd.c \
                       pixman-arm-simd-asm.S',
-              ccflags=bld.env.ARM_SIMD_CFLAGS)
+              use='ARM_SIMD')
     local_libs.append('pixman-arm-simd')
 
 if bld.is_defined('USE_ARM_NEON'):
@@ -75,7 +77,7 @@ if bld.is_defined('USE_ARM_NEON'):
               source=' \
                       pixman-arm-neon.c \
                       pixman-arm-neon-asm.S',
-              ccflags=bld.env.ARM_NEON_CFLAGS)
+              use='ARM_NEON')
     local_libs.append('pixman-arm-neon')
 
 Context.load_tool('syms')
@@ -110,6 +112,7 @@ bld.shlib(target='pixman-1',
                   pixman-timer.c				\
                   pixman-matrix.c',
           uselib_local = local_libs,
-          libs=bld.env.PTHREAD_LIB + (bld.env.CC_NAME != 'msvc' and ['m'] or []),
+          use=['PTHREAD', 'M'],
           features='syms',
           export_symbols_regex='pixman_.*')
+bld.set_env('default', bld.env.parent)
