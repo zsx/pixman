@@ -1,5 +1,52 @@
 #!/usr/bin/env python
 # encoding: utf-8
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
-def build(bld):
-    pass
+
+env = bld.env.derive()
+env.append_value('LIBPATH', os.path.join(bld.out_dir, 'pixman'))
+env.append_value('INCLUDES', [os.path.join(bld.top_dir, 'pixman'), os.path.join(bld.out_dir, 'pixman'), bld.out_dir])
+env.append_value('DEFINES', 'HAVE_CONFIG_H')
+
+bld.set_env('default', env)
+tests = '\
+	a1-trap-test		\
+	region-test		\
+	region-translate-test	\
+	fetch-test		\
+	oob-test		\
+	window-test		\
+	gradient-crash-test	\
+	trap-crasher		\
+	alphamap		\
+	alpha-loop		\
+	scaling-crash-test	\
+	blitters-test		\
+	scaling-test		\
+	composite'.split()
+
+tests_c99 = '\
+    fetch-test\
+    trap-crasher'.split()
+
+for t in tests:
+    sources = [t + '.c']
+    uses = ['OPENMP']
+    if t in tests_c99:
+        if not bld.is_defined('SUPPORTS_C99'):
+            continue
+        else:
+            uses.append('C99')
+    if t in ('region-test',
+             'blitters-test',
+             'scaling-test',
+             'alphamap',
+             'alpha-loop'):
+        sources.append('utils.c')
+    bld.program(target=t,
+                source=sources,
+                use=uses,
+                lib='pixman-1')
+
+bld.set_env('default', env.parent)
+
+

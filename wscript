@@ -32,6 +32,12 @@ main ()
   return 0;
 }
 '''
+C99_CODE = r'''
+#if __STDC_VERSION__ < 199901L
+#error non c99
+#endif
+int main(){return 0;}
+'''
 OPENMP_CODE = r'''
 #include <stdio.h>
 
@@ -237,7 +243,10 @@ def configure(cfg):
         cfg.env.cross_compile=False
     except:
         cfg.env.cross_compile=True
-    cfg.check_tool('compiler_c')
+    try:
+        cfg.check_cc(fragment=C99_CODE, msg='Checking whether compiler supports C99 standard', define_name='SUPPORTS_C99')
+    except ConfigurationError:
+        cfg.check_cc(fragment=C99_CODE, msg='Checking whether compiler supports C99 standard with -std=c99', ccflags='-std=c99', uselib_store='C99', define_name='SUPPORTS_C99', mandatory=False)
     cfg.check_cc(function_name='getisax', mandatory=False)
     cfg.check_endian()
     cfg.check_inline()
