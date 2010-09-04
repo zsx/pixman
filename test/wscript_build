@@ -52,6 +52,7 @@ for t in tests:
         sources.append('utils.c')
     bld.program(target=t,
                 source=sources,
+                install_path=None,
                 features='test',
                 use=uses,
                 lib='pixman-1')
