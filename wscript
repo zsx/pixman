@@ -7,7 +7,6 @@ from waflib.Configure import conf, ConfigurationError
 from waflibs.github.autoconf.defaults import INCLUDES_DEFAULT
 from waflib import Context
 from waflib import Utils
-from waflib.TaskGen import extension
 import re
 import os
 
@@ -219,6 +218,7 @@ def options(opt):
     cfg.add_option('--enable-gtk', action='store_true', dest='gtk', default=None, help='enable tests using GTK+ (default:auto)')
     opt.tool_options("compiler_c")
     opt.tool_options("perl")
+    opt.tool_options("waf_unit_test")
 
 def configure(cfg):
     cfg.env.PIXMAN_VERSION_MAJOR = [str(pixman_major)]
@@ -238,6 +238,7 @@ def configure(cfg):
     cfg.end_msg(host.fullname())
 
     cfg.check_tool('compiler_c')
+    cfg.check_tool('waf_unit_test')
     try:
         cfg.check_cc(fragment='int main(){return 0;}', execute=True, msg='Checking whether cross-compiling', okmsg='no', errmsg='yes')
         cfg.env.cross_compile=False
@@ -445,9 +446,6 @@ error Need Sun Studio 8 for visibility
     #print ("env = %s" % cfg.env)
     #print ("options = ", cfg.options)
 
-@extension('.h.in')
-def add_hfile(self, node):
-	tsk = self.create_task('subst_pc', node, node.change_ext('.h'))
 
 def build(bld):
     bld(source=['pixman-1.pc.in', 'pixman-1-uninstalled.pc.in'], 

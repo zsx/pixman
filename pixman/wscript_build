@@ -4,6 +4,15 @@
 import os
 import sys
 from waflib import Context
+from waflib.TaskGen import extension, subst_pc
+
+class subst_h(subst_pc):
+    pass
+
+@extension('.h.in')
+def add_hfile(self, node):
+    tsk = self.create_task('subst_h', node, node.change_ext('.h'))
+    self.bld.install_files('${PREFIX}/include/pixman-1', tsk.outputs)
 
 bld(target='pixman-version.h',
     source='pixman-version.h.in')
@@ -115,4 +124,5 @@ bld.shlib(target='pixman-1',
           use=['PTHREAD', 'M'],
           features='syms',
           export_symbols_regex='pixman_.*')
+bld.install_files('${PREFIX}/include/pixman-1', 'pixman.h')
 bld.set_env('default', bld.env.parent)
