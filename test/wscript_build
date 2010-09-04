@@ -6,7 +6,6 @@ from waflib.Tools import waf_unit_test
 import sys
 
 env = bld.env.derive()
-env.append_value('LIBPATH', os.path.join(bld.out_dir, 'pixman'))
 env.append_value('INCLUDES', [os.path.join(bld.top_dir, 'pixman'), os.path.join(bld.out_dir, 'pixman'), bld.out_dir])
 env.append_value('DEFINES', 'HAVE_CONFIG_H')
 
@@ -43,7 +42,7 @@ for t in tests:
             uses.append('C99')
 
     sources = [t + '.c']
-    uses = ['OPENMP']
+    uses = ['OPENMP', 'pixman-1']
     if t in ('region-test',
              'blitters-test',
              'scaling-test',
@@ -54,8 +53,7 @@ for t in tests:
                 source=sources,
                 install_path=None,
                 features='test',
-                use=uses,
-                lib='pixman-1')
+                use=uses)
 
 bld.add_post_fun(waf_unit_test.summary)
 
