@@ -2,6 +2,9 @@
 # encoding: utf-8
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
+from waflib.Tools import waf_unit_test
+import sys
+
 env = bld.env.derive()
 env.append_value('LIBPATH', os.path.join(bld.out_dir, 'pixman'))
 env.append_value('INCLUDES', [os.path.join(bld.top_dir, 'pixman'), os.path.join(bld.out_dir, 'pixman'), bld.out_dir])
@@ -28,14 +31,19 @@ tests_c99 = '\
     fetch-test\
     trap-crasher'.split()
 
+tests_skip = {'win32' : ['composite']}
+
 for t in tests:
-    sources = [t + '.c']
-    uses = ['OPENMP']
+    if t in tests_skip[sys.platform]:
+        continue
     if t in tests_c99:
         if not bld.is_defined('SUPPORTS_C99'):
             continue
         else:
             uses.append('C99')
+
+    sources = [t + '.c']
+    uses = ['OPENMP']
     if t in ('region-test',
              'blitters-test',
              'scaling-test',
@@ -44,9 +52,10 @@ for t in tests:
         sources.append('utils.c')
     bld.program(target=t,
                 source=sources,
+                features='test',
                 use=uses,
                 lib='pixman-1')
 
+bld.add_post_fun(waf_unit_test.summary)
+
 bld.set_env('default', env.parent)
-
-
