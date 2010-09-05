@@ -17,33 +17,23 @@ def add_hfile(self, node):
 bld(target='pixman-version.h',
     source='pixman-version.h.in')
 
-def make_combine(task, bits):
-    script = task.inputs[0].abspath()
-    tmpl = task.inputs[1].abspath()
-    target = task.outputs[0].abspath()
-    cmd = '"%s" "%s" %d < "%s" > "%s"' % (task.env.PERL, script, bits, tmpl, target)
-    if sys.platform == 'win32':
-        cmd = '"' + cmd + '"' #extra quotes for win32, see Frederic's reply on http://groups.google.com/group/comp.lang.python/browse_thread/thread/775ca566af9a70c2/65504296a27b43d5?lnk=gst&q=subprocess+windows+spaces#65504296a27b43d5 or try 'cmd /?' to see how " is interpreted by 'cmd.exe'
-    return task.exec_command(cmd)
-
-def make_combine32(task):
-    return make_combine(task, 8)
-
-def make_combine64(task):
-    return make_combine(task, 16)
+if sys.platform == 'win32':
+    CMD_QUOTE = '"'#extra quotes for win32, see Frederic's reply on http://groups.google.com/group/comp.lang.python/browse_thread/thread/775ca566af9a70c2/65504296a27b43d5?lnk=gst&q=subprocess+windows+spaces#65504296a27b43d5 or try 'cmd /?' to see how " is interpreted by 'cmd.exe'
+else:
+    CMD_QUOTE = ''
 
 bld(target='pixman-combine32.c',
     source=['make-combine.pl', 'pixman-combine.c.template'],
-    rule=make_combine32)
+    rule=CMD_QUOTE + r'"${PERL}" "${SRC[0].bldpath()}" 8 < "${SRC[1].bldpath()}" > "${TGT[0].bldpath()}"' + CMD_QUOTE)
 bld(target='pixman-combine32.h',
     source=['make-combine.pl', 'pixman-combine.h.template'],
-    rule=make_combine32)
+    rule=CMD_QUOTE + r'"${PERL}" "${SRC[0].bldpath()}" 8 < "${SRC[1].bldpath()}" > "${TGT[0].bldpath()}"' + CMD_QUOTE)
 bld(target='pixman-combine64.c',
     source=['make-combine.pl', 'pixman-combine.c.template'],
-    rule=make_combine64)
+    rule=CMD_QUOTE + r'"${PERL}" "${SRC[0].bldpath()}" 16 < "${SRC[1].bldpath()}" > "${TGT[0].bldpath()}"' + CMD_QUOTE)
 bld(target='pixman-combine64.h',
     source=['make-combine.pl', 'pixman-combine.h.template'],
-    rule=make_combine64)
+    rule=CMD_QUOTE + r'"${PERL}" "${SRC[0].bldpath()}" 16 < "${SRC[1].bldpath()}" > "${TGT[0].bldpath()}"' + CMD_QUOTE)
 
 local_libs = []
 
