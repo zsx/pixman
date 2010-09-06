@@ -27,12 +27,14 @@ bld(target='pixman-combine32.c',
     rule=CMD_QUOTE + r'"${PERL}" "${SRC[0].bldpath()}" 8 < "${SRC[1].bldpath()}" > "${TGT[0].bldpath()}"' + CMD_QUOTE)
 bld(target='pixman-combine32.h',
     source=['make-combine.pl', 'pixman-combine.h.template'],
+    ext_out='.h',
     rule=CMD_QUOTE + r'"${PERL}" "${SRC[0].bldpath()}" 8 < "${SRC[1].bldpath()}" > "${TGT[0].bldpath()}"' + CMD_QUOTE)
 bld(target='pixman-combine64.c',
     source=['make-combine.pl', 'pixman-combine.c.template'],
     rule=CMD_QUOTE + r'"${PERL}" "${SRC[0].bldpath()}" 16 < "${SRC[1].bldpath()}" > "${TGT[0].bldpath()}"' + CMD_QUOTE)
 bld(target='pixman-combine64.h',
     source=['make-combine.pl', 'pixman-combine.h.template'],
+    ext_out='.h',
     rule=CMD_QUOTE + r'"${PERL}" "${SRC[0].bldpath()}" 16 < "${SRC[1].bldpath()}" > "${TGT[0].bldpath()}"' + CMD_QUOTE)
 
 local_libs = []

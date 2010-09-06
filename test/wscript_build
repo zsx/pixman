@@ -33,7 +33,7 @@ tests_c99 = '\
 tests_skip = {'win32' : ['composite']}
 
 for t in tests:
-    if t in tests_skip[sys.platform]:
+    if sys.platform in tests_skip and t in tests_skip[sys.platform]:
         continue
     if t in tests_c99:
         if not bld.is_defined('SUPPORTS_C99'):
@@ -42,7 +42,7 @@ for t in tests:
             uses.append('C99')
 
     sources = [t + '.c']
-    uses = ['OPENMP', 'pixman-1']
+    uses = ['OPENMP', 'pixman-1', 'M']
     if t in ('region-test',
              'blitters-test',
              'scaling-test',
