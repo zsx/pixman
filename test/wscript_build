@@ -36,7 +36,7 @@ for t in tests:
     if sys.platform in tests_skip and t in tests_skip[sys.platform]:
         continue
     if t in tests_c99:
-        if not bld.is_defined('SUPPORTS_C99'):
+        if not bld.env.SUPPORTS_C99:
             continue
         else:
             uses.append('C99')

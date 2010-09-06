@@ -246,6 +246,7 @@ def configure(cfg):
         cfg.env.cross_compile=True
     try:
         cfg.check_cc(fragment=C99_CODE, msg='Checking whether compiler supports C99 standard', define_name='SUPPORTS_C99')
+        cfg.env.SUPPORTS_C99 = True
     except ConfigurationError:
         cfg.check_cc(fragment=C99_CODE, msg='Checking whether compiler supports C99 standard with -std=c99', ccflags='-std=c99', uselib_store='C99', define_name='SUPPORTS_C99', mandatory=False)
     cfg.check_cc(function_name='getisax', mandatory=False)
@@ -323,6 +324,7 @@ error Need Sun Studio 8 for visibility
     if cfg.options.mmx != False:
         try:
             cfg.check_cc(fragment=MMX_CODE, uselib_store='MMX', msg='Checking for mmx support', ccflags=cfg.env.MMX_CFLAGS, define_name='USE_MMX')
+            cfg.env.USE_MMX = True
         except ConfigurationError:
             cfg.env.MMX_CFLAGS = []
             if cfg.options.mmx:
@@ -342,6 +344,7 @@ error Need Sun Studio 8 for visibility
     if cfg.options.sse2 != False:
         try:
             cfg.check_cc(fragment=SSE2_CODE, uselib_store='SSE2', msg='Checking for sse2 support', ccflags=cfg.env.SSE2_CFLAGS, define_name='USE_SSE2')
+            cfg.env.USE_SSE2 = True
         except ConfigurationError:
             cfg.env.SSE2_CFLAGS = []
             if cfg.options.sse2:
@@ -378,6 +381,7 @@ error Need Sun Studio 8 for visibility
     if cfg.options.vmx != False:
         try:
             cfg.check_cc(fragment=VMX_CODE, uselib_store='VMX', msg='Checking for vmx support', ccflags=cfg.env.VMX_CFLAGS, define_name='USE_VMX')
+            cfg.env.USE_VMX = True
             
         except ConfigurationError:
             cfg.env.VMX_CFLAGS = []
@@ -386,12 +390,20 @@ error Need Sun Studio 8 for visibility
     # ==========================================================================
     # Check if assembler is gas compatible and supports ARM SIMD instructions
     if cfg.options.arm_simd != False:
-        cfg.check_cc(fragment=ARM_SIMD_CODE, ccflags='-x assembler-with-cpp', msg='Checking whether to use ARM SIMD assembler', define_name='USE_ARM_SIMD', mandatory=False)
+        try:
+            cfg.check_cc(fragment=ARM_SIMD_CODE, ccflags='-x assembler-with-cpp', msg='Checking whether to use ARM SIMD assembler', define_name='USE_ARM_SIMD')
+            cfg.env.USE_ARM_SIMD = True
+        except:
+            pass
 
     # ==========================================================================
     # Check if assembler is gas compatible and supports NEON instructions
     if cfg.options.arm_neon != False:
-        cfg.check_cc(fragment=ARM_NEON_CODE, ccflags='-x assembler-with-cpp', msg='Checking whether to use ARM NEON assembler', define_name='USE_ARM_NEON', mandatory=False)
+        try:
+            cfg.check_cc(fragment=ARM_NEON_CODE, ccflags='-x assembler-with-cpp', msg='Checking whether to use ARM NEON assembler', define_name='USE_ARM_NEON')
+            cfg.env.USE_ARM_NEON = True
+        except:
+            pass
 
     # =========================================================================================
     # Check for GNU-style inline assembly support
@@ -410,6 +422,7 @@ error Need Sun Studio 8 for visibility
             cfg.check_cc(lib='pixman-1', function_name='pixman_version_string', header_name='pixman.h', includes=cfg.env.INCLUDES_PIXMAN, ccflags=cfg.env.CCFLAGS_PIXMAN, libs=cfg.env.LIB_PIXMAN, libpath=cfg.env.LIBPATH_PIXMAN, linkflags=cfg.env.LINKFLAGS_PIXMAN)
             cfg.check_cfg('gtk+-2.0 --cflags --libs')
             cfg.define('HAVE_GTK', 1)
+            cfg.env.USE_GTK = True
         except ConfigurationError:
             pass
     # =====================================
@@ -442,8 +455,8 @@ error Need Sun Studio 8 for visibility
         cfg.end_msg('no', 'YELLOW')
     
     cfg.define('PACKAGE', APPNAME)
-    cfg.write_config_header('config.h', remove=False)
-    #print ("env = %s" % cfg.env)
+    cfg.write_config_header('config.h')
+    print ("env = %s" % cfg.env)
     #print ("options = ", cfg.options)
 
 

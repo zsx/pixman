@@ -44,28 +44,28 @@ env.append_value('INCLUDES', [bld.out_dir, '.'])
 env.append_value('DEFINES', 'HAVE_CONFIG_H')
 bld.set_env('default', env)
 
-if bld.is_defined('USE_MMX'):
+if bld.env.USE_MMX:
     bld.stlib(target='pixman-mmx',
               source=' \
                       pixman-mmx.c',
               use='MMX')
     local_libs.append('pixman-mmx')
 
-if bld.is_defined('USE_SSE2'):
+if bld.env.USE_SSE2:
     bld.stlib(target='pixman-sse2',
               source=' \
                       pixman-sse2.c',
               use='SSE2')
     local_libs.append('pixman-sse2')
 
-if bld.is_defined('USE_VMX'):
+if bld.env.USE_VMX:
     bld.stlib(target='pixman-vmx',
               source=' \
                       pixman-vmx.c',
               use='VMX')
     local_libs.append('pixman-vmx')
 
-if bld.is_defined('USE_ARM_SIMD'):
+if bld.env.USE_ARM_SIMD:
     bld.stlib(target='pixman-arm-simd',
               source=' \
                       pixman-arm-simd.c \
@@ -73,7 +73,7 @@ if bld.is_defined('USE_ARM_SIMD'):
               use='ARM_SIMD')
     local_libs.append('pixman-arm-simd')
 
-if bld.is_defined('USE_ARM_NEON'):
+if bld.env.USE_ARM_NEON:
     bld.stlib(target='pixman-arm-neon',
               source=' \
                       pixman-arm-neon.c \
