@@ -216,9 +216,9 @@ def options(opt):
     cfg.add_option('--disable-arm-neon', action='store_false', dest='arm_neon', default=None, help='disable ARM NEON fast paths (default:auto)')
     cfg.add_option('--enable-timers', action='store_true', dest='timers', default=False, help='enable TIMER_BEGIN and TIMER_END macros (default:no)')
     cfg.add_option('--enable-gtk', action='store_true', dest='gtk', default=None, help='enable tests using GTK+ (default:auto)')
-    opt.tool_options("compiler_c")
-    opt.tool_options("perl")
-    opt.tool_options("waf_unit_test")
+    opt.imp("compiler_c")
+    opt.imp("perl")
+    opt.imp("waf_unit_test")
 
 def configure(cfg):
     cfg.env.PIXMAN_VERSION_MAJOR = [str(pixman_major)]
@@ -237,8 +237,8 @@ def configure(cfg):
         host = PlatInfo.from_name(cfg.options.host)
     cfg.end_msg(host.fullname())
 
-    cfg.check_tool('compiler_c')
-    cfg.check_tool('waf_unit_test')
+    cfg.imp('compiler_c')
+    cfg.imp('waf_unit_test')
     try:
         cfg.check_cc(fragment='int main(){return 0;}', execute=True, msg='Checking whether cross-compiling', okmsg='no', errmsg='yes')
         cfg.env.cross_compile=False
@@ -285,7 +285,7 @@ def configure(cfg):
     cfg.check_cflags('-Wall', mandatory=False)
     cfg.check_cflags('-fno-strict-aliasing', mandatory=False)
 
-    cfg.check_tool('perl')
+    cfg.imp('perl')
     if not cfg.check_perl_version():
         cfg.fatal('Perl is required to build ' + APPNAME)
     try:
