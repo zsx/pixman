@@ -216,9 +216,9 @@ def options(opt):
     cfg.add_option('--disable-arm-neon', action='store_false', dest='arm_neon', default=None, help='disable ARM NEON fast paths (default:auto)')
     cfg.add_option('--enable-timers', action='store_true', dest='timers', default=False, help='enable TIMER_BEGIN and TIMER_END macros (default:no)')
     cfg.add_option('--enable-gtk', action='store_true', dest='gtk', default=None, help='enable tests using GTK+ (default:auto)')
-    opt.imp("compiler_c")
-    opt.imp("perl")
-    opt.imp("waf_unit_test")
+    opt.load("compiler_c")
+    opt.load("perl")
+    opt.load("waf_unit_test")
 
 def configure(cfg):
     cfg.env.PIXMAN_VERSION_MAJOR = [str(pixman_major)]
@@ -237,9 +237,11 @@ def configure(cfg):
         host = PlatInfo.from_name(cfg.options.host)
     cfg.end_msg(host.fullname())
 
-    cfg.imp('compiler_c')
-    cfg.imp('waf_unit_test')
+    cfg.load('compiler_c')
+    cfg.load('waf_unit_test')
+
     try:
+        cfg.check_cc(fragment='int main(){return 0;}', msg='Checking if c compiler working', okmsg='no', errmsg='yes')
         cfg.check_cc(fragment='int main(){return 0;}', execute=True, msg='Checking whether cross-compiling', okmsg='no', errmsg='yes')
         cfg.env.cross_compile=False
     except:
@@ -279,13 +281,12 @@ def configure(cfg):
         # has set CFLAGS.
         if cfg.env.CFLAGS == ['-g']:
             cfg.env.CFLAGS = ['-O', '-g']
-
     cfg.check_sizeof('long')
 
     cfg.check_cflags('-Wall', mandatory=False)
     cfg.check_cflags('-fno-strict-aliasing', mandatory=False)
 
-    cfg.imp('perl')
+    cfg.load('perl')
     if not cfg.check_perl_version():
         cfg.fatal('Perl is required to build ' + APPNAME)
     try:
@@ -456,7 +457,7 @@ error Need Sun Studio 8 for visibility
     
     cfg.define('PACKAGE', APPNAME)
     cfg.write_config_header('config.h')
-    print ("env = %s" % cfg.env)
+    #print ("env = %s" % cfg.env)
     #print ("options = ", cfg.options)
 
 
